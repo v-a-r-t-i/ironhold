@@ -1,0 +1,754 @@
+/* ═══════════════════════════════════════════════════════════
+   IRONHOLD — Dark Medieval Fantasy
+   Fonts: Cinzel (titles) + Crimson Text (body)
+═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Palette */
+  --bg-void:    #05050d;
+  --bg-deep:    #080813;
+  --bg-dark:    #0e0e1c;
+  --bg-mid:     #151525;
+  --bg-room:    #111120;
+  --bg-hover:   #1a1a30;
+  --stone:      #252538;
+  --stone-mid:  #333350;
+  --stone-lite: #454565;
+
+  --text-bright: #f0e8d8;
+  --text-main:   #c8bca8;
+  --text-dim:    #7a6e60;
+  --text-ghost:  #3a3530;
+
+  --gold:        #e8c44a;
+  --gold-bright: #ffd760;
+  --gold-dim:    #a88830;
+  --gold-glow:   rgba(232,196,74,0.25);
+
+  --torch:       #ff7420;
+  --torch-warm:  rgba(255,116,32,0.18);
+  --torch-glow:  rgba(255,116,32,0.08);
+
+  /* Rarity */
+  --common:    #8a8a8a;
+  --rare:      #3a8eff;
+  --epic:      #a044ff;
+  --legendary: #ff8c00;
+
+  /* Role badge backgrounds */
+  --role-tank-bg:     rgba(58,142,255,0.15);
+  --role-tank-c:      #7ab8ff;
+  --role-archer-bg:   rgba(50,200,80,0.15);
+  --role-archer-c:    #7edd8a;
+  --role-mage-bg:     rgba(160,68,255,0.15);
+  --role-mage-c:      #c882ff;
+  --role-assassin-bg: rgba(255,60,80,0.15);
+  --role-assassin-c:  #ff8898;
+  --role-worker-bg:   rgba(220,200,80,0.15);
+  --role-worker-c:    #ddc866;
+
+  --room-h: 108px;
+  --t: 0.18s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-void);
+  color: var(--text-main);
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 15px;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── SCREENS ──────────────────────────────────────────── */
+.screen { display: none; width: 100%; height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ─── AUTH SCREEN ──────────────────────────────────────── */
+#auth-screen {
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, #1a1540 0%, transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 100%, #0a0818 0%, transparent 60%),
+    var(--bg-void);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Torch glow blobs on auth screen */
+.auth-bg-effects { position: absolute; inset: 0; pointer-events: none; }
+.auth-torch {
+  position: absolute;
+  width: 300px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,120,30,0.12) 0%, transparent 70%);
+  top: 20%;
+  animation: torch-pulse 3s ease-in-out infinite alternate;
+}
+.auth-torch.left  { left: -80px; }
+.auth-torch.right { right: -80px; animation-delay: -1.5s; }
+@keyframes torch-pulse {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to   { opacity: 1;   transform: scale(1.05); }
+}
+
+.auth-container {
+  position: relative;
+  background: linear-gradient(160deg, var(--bg-mid) 0%, var(--bg-dark) 100%);
+  border: 1px solid var(--stone-mid);
+  border-radius: 6px;
+  padding: 40px 36px;
+  width: 360px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 8px 80px rgba(0,0,0,0.8),
+    0 0 60px rgba(26,21,64,0.6);
+}
+
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-crest {
+  font-size: 2.4rem;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 8px;
+  text-shadow: 0 0 30px var(--gold-glow), 0 0 60px rgba(232,196,74,0.15);
+  animation: crest-glow 4s ease-in-out infinite alternate;
+}
+@keyframes crest-glow {
+  from { text-shadow: 0 0 20px var(--gold-glow); }
+  to   { text-shadow: 0 0 40px var(--gold-glow), 0 0 80px rgba(232,196,74,0.1); }
+}
+
+.auth-logo h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 6px;
+  line-height: 1;
+}
+.auth-logo p {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--stone);
+  margin-bottom: 22px;
+  gap: 0;
+}
+.tab-btn {
+  flex: 1;
+  padding: 9px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  transition: var(--t);
+}
+.tab-btn:hover { color: var(--text-main); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+.auth-form { display: none; flex-direction: column; gap: 10px; }
+.auth-form.active { display: flex; }
+
+.auth-form input {
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  padding: 10px 14px;
+  color: var(--text-bright);
+  font-family: 'Crimson Text', serif;
+  font-size: 1rem;
+  outline: none;
+  transition: var(--t);
+}
+.auth-form input:focus { border-color: var(--stone-lite); background: var(--bg-room); }
+.auth-form input::placeholder { color: var(--text-ghost); }
+
+.btn-primary {
+  padding: 11px;
+  background: linear-gradient(135deg, #3a2a00 0%, #6a4a00 50%, #3a2a00 100%);
+  border: 1px solid var(--gold-dim);
+  border-radius: 3px;
+  color: var(--gold-bright);
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: var(--t);
+  margin-top: 4px;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4a3800 0%, #8a6200 50%, #4a3800 100%);
+  box-shadow: 0 0 20px rgba(232,196,74,0.2);
+}
+.btn-primary:active { transform: translateY(1px); }
+
+.btn-secondary {
+  width: 100%;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: var(--t);
+}
+.btn-secondary:hover { border-color: var(--stone-lite); color: var(--text-main); }
+
+.auth-error {
+  min-height: 18px;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #ff7070;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ─── GAME LAYOUT ──────────────────────────────────────── */
+#game-screen { flex-direction: column; }
+
+#top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: 46px;
+  background: var(--bg-mid);
+  border-bottom: 1px solid var(--stone);
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.castle-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  color: var(--gold);
+  letter-spacing: 3px;
+  min-width: 130px;
+}
+
+.resources {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  justify-content: center;
+}
+.resource { display: flex; align-items: center; gap: 5px; font-size: 0.88rem; }
+.res-icon { font-size: 0.95rem; }
+.res-val  { color: var(--text-bright); font-weight: 600; min-width: 36px; font-variant-numeric: tabular-nums; }
+
+.top-actions { display: flex; gap: 6px; }
+.btn-icon {
+  background: none;
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  padding: 4px 9px;
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: var(--t);
+}
+.btn-icon:hover { border-color: var(--stone-lite); background: var(--bg-hover); color: var(--gold); }
+
+#main-area {
+  display: grid;
+  grid-template-columns: 192px 1fr 210px;
+  flex: 1;
+  min-height: 0;
+}
+
+#bottom-bar {
+  display: flex;
+  height: 46px;
+  border-top: 1px solid var(--stone);
+  background: var(--bg-mid);
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-top: 2px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  transition: var(--t);
+}
+.nav-btn.active, .nav-btn:hover {
+  color: var(--gold);
+  border-top-color: var(--gold);
+  background: rgba(232,196,74,0.04);
+}
+
+/* ─── SIDEBARS ─────────────────────────────────────────── */
+#sidebar-left, #sidebar-right {
+  background: var(--bg-dark);
+  overflow-y: auto;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#sidebar-left  { border-right: 1px solid var(--stone); }
+#sidebar-right { border-left:  1px solid var(--stone); }
+
+.sidebar-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--stone);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.sidebar-version {
+  margin-top: auto;
+  font-size: 0.65rem;
+  color: var(--text-ghost);
+  text-align: center;
+  padding-top: 8px;
+  font-family: monospace;
+}
+
+/* Dweller card mini */
+.dweller-card-mini {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--t);
+}
+.dweller-card-mini:hover { background: var(--bg-mid); border-color: var(--stone); }
+.dweller-card-mini.selected { background: var(--bg-mid); border-color: var(--gold-dim); }
+
+.dweller-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--stone);
+  border: 1px solid var(--stone-mid);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.dweller-mini-info { flex: 1; min-width: 0; }
+.dweller-mini-name {
+  font-size: 0.88rem;
+  color: var(--text-bright);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dweller-mini-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+.dweller-stars { font-size: 0.6rem; color: var(--gold); letter-spacing: 1px; }
+
+/* Info panel */
+.info-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px 12px;
+  text-align: center; color: var(--text-ghost);
+  height: 100%;
+}
+.info-icon { font-size: 2.2rem; margin-bottom: 12px; opacity: 0.3; }
+.info-placeholder p { font-size: 0.85rem; line-height: 1.6; font-style: italic; }
+
+/* ─── CASTLE VIEW ──────────────────────────────────────── */
+#castle-view {
+  background: var(--bg-void);
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 12px;
+}
+
+#castle-wall {
+  width: 100%;
+  max-width: 660px;
+  border: 2px solid var(--stone-mid);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--bg-deep);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.02) inset,
+    0 0 60px rgba(0,0,0,0.8),
+    0 0 30px rgba(26,21,64,0.4);
+}
+
+/* Castle outer crenellations */
+#castle-wall::before {
+  content: '';
+  display: block;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--stone-mid) 0px,
+    var(--stone-mid) 16px,
+    transparent 16px,
+    transparent 24px
+  );
+}
+
+.castle-floor {
+  display: grid;
+  border-bottom: 2px solid var(--stone);
+  position: relative;
+}
+.castle-floor:last-child { border-bottom: none; }
+
+/* Room cell */
+.room-cell {
+  height: var(--room-h);
+  background: var(--bg-room);
+  border-right: 2px solid var(--stone);
+  cursor: pointer;
+  transition: background var(--t);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 11px 12px 8px;
+}
+.room-cell:last-child { border-right: none; }
+.room-cell:hover { background: var(--bg-hover); }
+
+/* Locked state */
+.room-cell.locked {
+  background: #07070f;
+  cursor: default;
+  opacity: 0.55;
+}
+.room-cell.locked:hover { background: #07070f; }
+
+/* Torch flame top-right */
+.room-cell .room-torch {
+  position: absolute;
+  top: 7px; right: 10px;
+  font-size: 0.9rem;
+  animation: flicker 2.5s ease-in-out infinite alternate;
+}
+.room-cell.locked .room-torch { animation: none; }
+@keyframes flicker {
+  0%   { opacity: 0.65; transform: scale(0.92) rotate(-2deg); }
+  40%  { opacity: 1;    transform: scale(1.06) rotate(1deg); }
+  70%  { opacity: 0.85; transform: scale(0.98) rotate(-1deg); }
+  100% { opacity: 0.9;  transform: scale(1.03) rotate(2deg); }
+}
+
+/* Warm torch glow overlay */
+.room-cell::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 70px; height: 70px;
+  background: radial-gradient(circle at 85% 15%, var(--torch-warm), transparent 65%);
+  pointer-events: none;
+}
+.room-cell.locked::after { display: none; }
+
+.room-icon { font-size: 1.2rem; margin-bottom: 3px; }
+.room-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--text-bright);
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+.room-meta {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.room-output {
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+  margin-top: 3px;
+}
+
+.room-dwellers {
+  display: flex;
+  gap: 3px;
+  margin-top: auto;
+}
+.rdot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--stone-mid);
+  border: 1px solid var(--stone-lite);
+  font-size: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Stone floor at bottom of each cell */
+.room-floor-line {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--stone) 0px, var(--stone) 30px,
+    var(--stone-mid) 30px, var(--stone-mid) 32px
+  );
+  opacity: 0.6;
+}
+
+/* ─── MODAL ────────────────────────────────────────────── */
+#modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+#modal-overlay.hidden { display: none; }
+
+#modal-box {
+  background: linear-gradient(160deg, var(--bg-mid) 0%, var(--bg-dark) 100%);
+  border: 1px solid var(--stone-mid);
+  border-radius: 4px;
+  width: 490px;
+  max-width: 92vw;
+  max-height: 82vh;
+  overflow-y: auto;
+  padding: 26px 24px;
+  position: relative;
+  box-shadow: 0 0 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.02) inset;
+}
+
+#modal-close {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none;
+  color: var(--text-dim); font-size: 1rem; cursor: pointer;
+  transition: var(--t); line-height: 1;
+}
+#modal-close:hover { color: var(--text-bright); }
+
+.modal-title {
+  font-family: 'Cinzel', serif;
+  font-size: 1.25rem;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.modal-sub {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  font-family: 'Cinzel', serif;
+}
+
+.modal-sect { margin-bottom: 18px; }
+.modal-sect-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--stone);
+}
+
+/* Dweller detail header */
+.dw-header { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+.dw-avatar-lg {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: var(--stone);
+  border: 2px solid var(--stone-lite);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; flex-shrink: 0;
+}
+.dw-header-info h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: var(--text-bright);
+  margin-bottom: 3px;
+}
+.dw-stars { color: var(--gold); font-size: 0.8rem; margin-bottom: 5px; }
+
+/* Role badge */
+.role-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 2px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.role-tank     { background: var(--role-tank-bg);     color: var(--role-tank-c);     border: 1px solid var(--role-tank-c); }
+.role-archer   { background: var(--role-archer-bg);   color: var(--role-archer-c);   border: 1px solid var(--role-archer-c); }
+.role-mage     { background: var(--role-mage-bg);     color: var(--role-mage-c);     border: 1px solid var(--role-mage-c); }
+.role-assassin { background: var(--role-assassin-bg); color: var(--role-assassin-c); border: 1px solid var(--role-assassin-c); }
+.role-worker   { background: var(--role-worker-bg);   color: var(--role-worker-c);   border: 1px solid var(--role-worker-c); }
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  padding: 7px 6px;
+  text-align: center;
+}
+.stat-lbl { font-size: 0.6rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.stat-val { font-size: 1rem; color: var(--text-bright); font-weight: 600; margin-top: 2px; }
+
+/* Equip grid */
+.equip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.equip-slot {
+  background: var(--bg-dark);
+  border: 1px dashed var(--stone);
+  border-radius: 3px;
+  height: 72px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: var(--t);
+  gap: 3px;
+  padding: 4px;
+}
+.equip-slot:hover { background: var(--bg-hover); border-color: var(--stone-lite); }
+.equip-slot.filled { border-style: solid; }
+.equip-slot .eslot-icon { font-size: 1.3rem; }
+.equip-slot .eslot-lbl  { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-family: 'Cinzel', serif; }
+.equip-slot .eslot-name { font-size: 0.7rem; text-align: center; padding: 0 3px; line-height: 1.2; }
+
+/* Rarity borders */
+.r-common    { border-color: var(--common)    !important; }
+.r-rare      { border-color: var(--rare)      !important; box-shadow: 0 0 8px  rgba(58,142,255,0.25); }
+.r-epic      { border-color: var(--epic)      !important; box-shadow: 0 0 8px  rgba(160,68,255,0.3); }
+.r-legendary { border-color: var(--legendary) !important; box-shadow: 0 0 12px rgba(255,140,0,0.35); animation: leg-glow 2s ease-in-out infinite alternate; }
+@keyframes leg-glow {
+  from { box-shadow: 0 0 8px  rgba(255,140,0,0.3); }
+  to   { box-shadow: 0 0 18px rgba(255,140,0,0.5); }
+}
+
+/* Item card in equip picker */
+.item-card {
+  background: var(--bg-dark);
+  border-radius: 3px;
+  padding: 10px 12px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: var(--t);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--stone);
+}
+.item-card:hover { background: var(--bg-hover); }
+.item-card.equipped { background: var(--bg-mid); }
+.item-card-left h4 { font-size: 0.9rem; color: var(--text-bright); }
+.item-card-left .item-stats { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+.item-rarity-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+/* Room assign mini card */
+.assign-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+.assign-card .btn-remove {
+  margin-left: auto;
+  background: none; border: none;
+  color: var(--text-dim); cursor: pointer; font-size: 0.9rem;
+  transition: var(--t);
+}
+.assign-card .btn-remove:hover { color: #ff6666; }
+
+select {
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  color: var(--text-bright);
+  padding: 8px 10px;
+  font-family: 'Crimson Text', serif;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-bottom: 8px;
+  outline: none;
+}
+select:focus { border-color: var(--stone-lite); }
+
+/* Inventory grid */
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.inv-item {
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 3px;
+  padding: 8px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--t);
+  display: flex; flex-direction: column; gap: 3px; align-items: center;
+}
+.inv-item:hover { background: var(--bg-hover); }
+.inv-item .inv-icon { font-size: 1.4rem; }
+.inv-item .inv-name { font-size: 0.68rem; color: var(--text-main); line-height: 1.2; }
+
+/* ─── SCROLLBARS ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--stone); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--stone-lite); }
+
+/* ─── UTILITY ──────────────────────────────────────────── */
+.hidden { display: none !important; }
+.txt-gold   { color: var(--gold); }
+.txt-dim    { color: var(--text-dim); }
+.txt-bright { color: var(--text-bright); }

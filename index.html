@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ironhold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>const APP_VERSION = '1.0.0';</script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-bg-effects">
+    <div class="auth-torch left"></div>
+    <div class="auth-torch right"></div>
+  </div>
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="auth-crest">⚔</div>
+      <h1>IRONHOLD</h1>
+      <p>Medieval Castle Builder</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="tab-btn active" data-tab="login">Login</button>
+      <button class="tab-btn" data-tab="register">Register</button>
+    </div>
+    <div id="auth-login" class="auth-form active">
+      <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+      <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+      <button id="btn-login" class="btn-primary">Enter the Castle</button>
+    </div>
+    <div id="auth-register" class="auth-form">
+      <input type="text" id="reg-name" placeholder="Your Lord/Lady Name" autocomplete="off">
+      <input type="email" id="reg-email" placeholder="Email" autocomplete="email">
+      <input type="password" id="reg-password" placeholder="Password (6+ chars)" autocomplete="new-password">
+      <button id="btn-register" class="btn-primary">Found Your Castle</button>
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <button id="btn-guest" class="btn-secondary">⚔ Play as Guest (no save)</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     GAME SCREEN
+════════════════════════════════════════════ -->
+<div id="game-screen" class="screen">
+
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="castle-name" id="castle-name">Ironhold</div>
+    <div class="resources">
+      <div class="resource"><span class="res-icon">💰</span><span class="res-val" id="val-gold">0</span></div>
+      <div class="resource"><span class="res-icon">🍖</span><span class="res-val" id="val-food">0</span></div>
+      <div class="resource"><span class="res-icon">⚙️</span><span class="res-val" id="val-iron">0</span></div>
+      <div class="resource"><span class="res-icon">💎</span><span class="res-val" id="val-shards">0</span></div>
+    </div>
+    <div class="top-actions">
+      <button class="btn-icon" id="btn-inventory" title="Inventory">🎒</button>
+      <button class="btn-icon" id="btn-logout" title="Logout">🚪</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div id="main-area">
+
+    <!-- LEFT SIDEBAR: Dwellers -->
+    <div id="sidebar-left">
+      <div class="sidebar-title">Dwellers <span id="dweller-count">0/10</span></div>
+      <div id="dweller-list"></div>
+      <div class="sidebar-version">v<span id="ver-display"></span></div>
+    </div>
+
+    <!-- CASTLE VIEW -->
+    <div id="castle-view">
+      <div id="castle-wall"></div>
+    </div>
+
+    <!-- RIGHT SIDEBAR: Info -->
+    <div id="sidebar-right">
+      <div id="info-panel">
+        <div class="info-placeholder">
+          <div class="info-icon">🏰</div>
+          <p>Click a room or dweller to inspect</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-bar">
+    <button class="nav-btn active" data-view="castle">🏰 Castle</button>
+    <button class="nav-btn" data-view="battle">⚔️ Battle</button>
+    <button class="nav-btn" data-view="ranks">🏆 Ranks</button>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal-box">
+    <button id="modal-close">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="data.js"></script>
+<script src="game.js"></script>
+<script src="battle.js"></script>
+<script src="ui.js"></script>
+<script src="auth.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
