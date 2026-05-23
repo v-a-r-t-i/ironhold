@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Ironhold</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script>const APP_VERSION = '1.1.0';</script>
+  <script>const APP_VERSION = '1.2.0';</script>
 </head>
 <body>
 
@@ -52,30 +52,37 @@
     <div class="resources">
       <div class="resource"><span class="res-icon">💰</span><span class="res-val" id="val-gold">0</span></div>
       <div class="resource"><span class="res-icon">🍖</span><span class="res-val" id="val-food">0</span></div>
-      <div class="resource"><span class="res-icon">⚙️</span><span class="res-val" id="val-iron">0</span></div>
-      <div class="resource"><span class="res-icon">💎</span><span class="res-val" id="val-shards">0</span></div>
+      <div class="resource res-hide-sm"><span class="res-icon">⚙️</span><span class="res-val" id="val-iron">0</span></div>
+      <div class="resource res-hide-sm"><span class="res-icon">💎</span><span class="res-val" id="val-shards">0</span></div>
     </div>
     <div class="top-actions">
+      <button class="btn-icon" id="btn-dwellers" title="Dwellers">👥</button>
       <button class="btn-icon" id="btn-inventory" title="Inventory">🎒</button>
       <button class="btn-icon" id="btn-logout" title="Logout">🚪</button>
     </div>
   </div>
 
-  <!-- MAIN AREA — views swap here -->
+  <!-- MAIN AREA -->
   <div id="main-area">
 
     <!-- ── CASTLE VIEW ── -->
     <div id="view-castle" class="game-view active">
-      <div id="sidebar-left">
-        <div class="sidebar-title">Dwellers <span id="dweller-count">0/10</span></div>
+
+      <!-- Desktop left sidebar (hidden on mobile) -->
+      <div id="sidebar-left" class="desktop-only">
+        <div class="sidebar-title">Dwellers <span id="dweller-count-side">0/10</span></div>
         <div class="sidebar-hint">Drag to a room ↓</div>
-        <div id="dweller-list"></div>
+        <div id="dweller-list-side"></div>
         <div class="sidebar-version">v<span id="ver-display"></span></div>
       </div>
+
+      <!-- Castle wall — full width on mobile -->
       <div id="castle-view">
         <div id="castle-wall"></div>
       </div>
-      <div id="sidebar-right">
+
+      <!-- Desktop right sidebar (hidden on mobile) -->
+      <div id="sidebar-right" class="desktop-only">
         <div id="info-panel">
           <div class="info-placeholder">
             <div class="info-icon">🏰</div>
@@ -83,6 +90,7 @@
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- ── BATTLE VIEW ── -->
@@ -105,6 +113,17 @@
   </div>
 
 </div>
+
+<!-- DWELLER DRAWER (mobile) -->
+<div id="dweller-drawer">
+  <div id="dweller-drawer-handle"></div>
+  <div class="dweller-drawer-header">
+    <span>Dwellers <span id="dweller-count">0/10</span></span>
+    <button id="btn-close-drawer">✕</button>
+  </div>
+  <div id="dweller-list"></div>
+</div>
+<div id="dweller-drawer-backdrop"></div>
 
 <!-- MODAL -->
 <div id="modal-overlay" class="hidden">

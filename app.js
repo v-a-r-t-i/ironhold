@@ -1,15 +1,13 @@
-// app.js — Boot, event binding, game loop v1.1.0
+// app.js — Boot, event binding, game loop v1.2.0
 
 (async function boot() {
-
   const authScreen = document.getElementById('auth-screen');
   const gameScreen = document.getElementById('game-screen');
   const authError  = document.getElementById('auth-error');
+  const setErr     = msg => { authError.textContent = msg; };
+  const clearErr   = ()  => { authError.textContent = ''; };
 
-  const setErr   = msg => { authError.textContent = msg; };
-  const clearErr = ()  => { authError.textContent = ''; };
-
-  // ── Auth tab switching ───────────────────────────────────
+  // ── Auth tabs ────────────────────────────────────────────
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -26,10 +24,8 @@
     const pass  = document.getElementById('login-password').value;
     if (!email || !pass) return setErr('Enter email and password.');
     clearErr();
-    try {
-      await Auth.login(email, pass);
-      await startGame();
-    } catch (e) { setErr(e.message); }
+    try { await Auth.login(email, pass); await startGame(); }
+    catch (e) { setErr(e.message); }
   });
 
   // ── Register ─────────────────────────────────────────────
@@ -40,10 +36,8 @@
     if (!name || !email || !pass) return setErr('Fill in all fields.');
     if (pass.length < 6) return setErr('Password must be 6+ characters.');
     clearErr();
-    try {
-      await Auth.register(email, pass);
-      await startGame(name);
-    } catch (e) { setErr(e.message); }
+    try { await Auth.register(email, pass); await startGame(name); }
+    catch (e) { setErr(e.message); }
   });
 
   // ── Guest ─────────────────────────────────────────────────
@@ -57,14 +51,19 @@
     clearErr();
   });
 
-  // ── Modal close ───────────────────────────────────────────
+  // ── Modal ─────────────────────────────────────────────────
   document.getElementById('modal-close').addEventListener('click', UI.closeModal);
   document.getElementById('modal-overlay').addEventListener('click', e => {
     if (e.target.id === 'modal-overlay') UI.closeModal();
   });
 
-  // ── Inventory button ──────────────────────────────────────
+  // ── Inventory ─────────────────────────────────────────────
   document.getElementById('btn-inventory').addEventListener('click', UI.openInventory);
+
+  // ── Dweller drawer ────────────────────────────────────────
+  document.getElementById('btn-dwellers').addEventListener('click', UI.openDrawer);
+  document.getElementById('btn-close-drawer').addEventListener('click', UI.closeDrawer);
+  document.getElementById('dweller-drawer-backdrop').addEventListener('click', UI.closeDrawer);
 
   // ── Bottom nav ────────────────────────────────────────────
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -75,24 +74,21 @@
     });
   });
 
-  // ── START GAME ───────────────────────────────────────────
+  // ── Start game ────────────────────────────────────────────
   async function startGame(newName) {
     let saved = null;
     if (Auth.isLoggedIn()) saved = await Sync.loadGame();
     Game.init(saved);
-    if (newName && !saved) {
-      Game.getState().castleName = `${newName}'s Ironhold`;
-    }
+    if (newName && !saved) Game.getState().castleName = `${newName}'s Ironhold`;
     authScreen.classList.remove('active');
     gameScreen.classList.add('active');
     UI.renderAll();
     beginTicks();
   }
 
-  // ── TICKS ─────────────────────────────────────────────────
+  // ── Ticks ─────────────────────────────────────────────────
   function beginTicks() {
     setInterval(() => { Game.tick(); UI.renderResources(); }, 2000);
     setInterval(() => { if (Auth.isLoggedIn()) Sync.saveGame(); }, 30000);
   }
-
 })();
