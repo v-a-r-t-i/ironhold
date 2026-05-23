@@ -1,13 +1,12 @@
-// app.js — Boot, event binding, game loop v1.2.0
+// app.js — Boot, events, loop v1.4.0
 
 (async function boot() {
   const authScreen = document.getElementById('auth-screen');
-  const gameScreen = document.getElementById('game-screen');
   const authError  = document.getElementById('auth-error');
-  const setErr     = msg => { authError.textContent = msg; };
-  const clearErr   = ()  => { authError.textContent = ''; };
+  const setErr   = msg => { authError.textContent = msg; };
+  const clearErr = ()  => { authError.textContent = ''; };
 
-  // ── Auth tabs ────────────────────────────────────────────
+  // Auth tabs
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -18,17 +17,16 @@
     });
   });
 
-  // ── Login ────────────────────────────────────────────────
+  // Login
   document.getElementById('btn-login').addEventListener('click', async () => {
     const email = document.getElementById('login-email').value.trim();
     const pass  = document.getElementById('login-password').value;
     if (!email || !pass) return setErr('Enter email and password.');
     clearErr();
-    try { await Auth.login(email, pass); await startGame(); }
-    catch (e) { setErr(e.message); }
+    try { await Auth.login(email, pass); await startGame(); } catch (e) { setErr(e.message); }
   });
 
-  // ── Register ─────────────────────────────────────────────
+  // Register
   document.getElementById('btn-register').addEventListener('click', async () => {
     const name  = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
@@ -36,57 +34,56 @@
     if (!name || !email || !pass) return setErr('Fill in all fields.');
     if (pass.length < 6) return setErr('Password must be 6+ characters.');
     clearErr();
-    try { await Auth.register(email, pass); await startGame(name); }
-    catch (e) { setErr(e.message); }
+    try { await Auth.register(email, pass); await startGame(name); } catch (e) { setErr(e.message); }
   });
 
-  // ── Guest ─────────────────────────────────────────────────
+  // Guest
   document.getElementById('btn-guest').addEventListener('click', () => startGame());
 
-  // ── Logout ────────────────────────────────────────────────
+  // Logout
   document.getElementById('btn-logout').addEventListener('click', () => {
     Auth.logout();
-    gameScreen.classList.remove('active');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     authScreen.classList.add('active');
     clearErr();
   });
 
-  // ── Modal ─────────────────────────────────────────────────
+  // Modal
   document.getElementById('modal-close').addEventListener('click', UI.closeModal);
   document.getElementById('modal-overlay').addEventListener('click', e => {
     if (e.target.id === 'modal-overlay') UI.closeModal();
   });
 
-  // ── Inventory ─────────────────────────────────────────────
+  // Inventory + drawer
   document.getElementById('btn-inventory').addEventListener('click', UI.openInventory);
-
-  // ── Dweller drawer ────────────────────────────────────────
   document.getElementById('btn-dwellers').addEventListener('click', UI.openDrawer);
   document.getElementById('btn-close-drawer').addEventListener('click', UI.closeDrawer);
   document.getElementById('dweller-drawer-backdrop').addEventListener('click', UI.closeDrawer);
 
-  // ── Bottom nav ────────────────────────────────────────────
+  // Map back button
+  document.getElementById('btn-map-back').addEventListener('click', () => UI.showScreen('castle'));
+
+  // Bottom nav (both bars)
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      UI.switchView(btn.dataset.view);
+      const nav = btn.dataset.nav;
+      if (nav === 'ranks') { UI.openRanks(); return; }
+      UI.showScreen(nav);
     });
   });
 
-  // ── Start game ────────────────────────────────────────────
+  // Start
   async function startGame(newName) {
     let saved = null;
     if (Auth.isLoggedIn()) saved = await Sync.loadGame();
     Game.init(saved);
     if (newName && !saved) Game.getState().castleName = `${newName}'s Ironhold`;
-    authScreen.classList.remove('active');
-    gameScreen.classList.add('active');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('game-screen').classList.add('active');
     UI.renderAll();
     beginTicks();
   }
 
-  // ── Ticks ─────────────────────────────────────────────────
   function beginTicks() {
     setInterval(() => { Game.tick(); UI.renderResources(); }, 2000);
     setInterval(() => { if (Auth.isLoggedIn()) Sync.saveGame(); }, 30000);

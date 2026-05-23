@@ -95,6 +95,30 @@ const STARTING_DWELLERS = [
     assignedRoom: null,
     injured: false,
   },
+  {
+    id: 'dw_003',
+    name: 'Bram',
+    gender: 'male',
+    emoji: '👨‍🦱',
+    stars: 1,
+    level: 1, xp: 0,
+    stats: { atk: 11, def: 9,  mdef: 6,  hp: 78,  crit: 6,  dodge: 4,  spd: 9  },
+    equipment: { weapon: null, armor: null, ring: null, artifact1: null, artifact2: null, artifact3: null },
+    assignedRoom: null,
+    injured: false,
+  },
+  {
+    id: 'dw_004',
+    name: 'Tilda',
+    gender: 'female',
+    emoji: '👱‍♀️',
+    stars: 1,
+    level: 1, xp: 0,
+    stats: { atk: 8,  def: 6,  mdef: 9,  hp: 70,  crit: 8,  dodge: 9,  spd: 11 },
+    equipment: { weapon: null, armor: null, ring: null, artifact1: null, artifact2: null, artifact3: null },
+    assignedRoom: null,
+    injured: false,
+  },
 ];
 
 // ─── STARTING INVENTORY ────────────────────────────────────
@@ -104,3 +128,27 @@ const STARTING_ITEMS = [
   { id: 'itm_003', name: 'Leather Vest',  slot: 'armor',  weaponType: null,      rarity: 'common', stats: { def: 6, hp: 18 },        ability: null },
   { id: 'itm_004', name: 'Copper Ring',   slot: 'ring',   weaponType: null,      rarity: 'common', stats: { spd: 2, dodge: 2 },      ability: null },
 ];
+
+
+// ─── MAP / ROADMAP STAGES ──────────────────────────────────
+// Each stage: difficulty scales enemy stats. Cleared in order.
+const MAP_STAGES = [
+  { id: 1,  name: 'Bandit Camp',       region: 'Greenwood',   boss: '🏕️', diff: 1.0,  enemyCount: 1 },
+  { id: 2,  name: 'Wolf Den',          region: 'Greenwood',   boss: '🐺', diff: 1.2,  enemyCount: 2 },
+  { id: 3,  name: 'Goblin Warren',     region: 'Greenwood',   boss: '👺', diff: 1.4,  enemyCount: 2 },
+  { id: 4,  name: 'Crossroads Keep',   region: 'Greenwood',   boss: '🏰', diff: 1.7,  enemyCount: 3 },
+  { id: 5,  name: 'Haunted Mill',      region: 'Mistmoor',    boss: '👻', diff: 2.0,  enemyCount: 2 },
+  { id: 6,  name: 'Bog Witch Hut',     region: 'Mistmoor',    boss: '🧙', diff: 2.4,  enemyCount: 3 },
+  { id: 7,  name: 'Skeleton Crypt',    region: 'Mistmoor',    boss: '💀', diff: 2.8,  enemyCount: 3 },
+  { id: 8,  name: 'Drowned Fortress',  region: 'Mistmoor',    boss: '🏯', diff: 3.3,  enemyCount: 3 },
+  { id: 9,  name: 'Frost Caverns',     region: 'Frostpeak',   boss: '🧊', diff: 3.8,  enemyCount: 3 },
+  { id: 10, name: 'Wyvern Roost',      region: 'Frostpeak',   boss: '🐉', diff: 4.4,  enemyCount: 3 },
+  { id: 11, name: 'Dark Citadel',      region: 'Frostpeak',   boss: '🏚️', diff: 5.0,  enemyCount: 3 },
+  { id: 12, name: 'Throne of Ash',     region: 'Frostpeak',   boss: '👑', diff: 6.0,  enemyCount: 3 },
+];
+
+const REGION_COLORS = {
+  'Greenwood': '#3a7a3a',
+  'Mistmoor':  '#5a4a7a',
+  'Frostpeak': '#3a6a8a',
+};

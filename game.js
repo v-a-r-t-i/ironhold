@@ -20,6 +20,8 @@ const Game = (() => {
       inventory:    JSON.parse(JSON.stringify(STARTING_ITEMS)),
       roomLevels,
       roomDwellers,
+      mapProgress:  1,
+      wins:         0,
       lastTick:     Date.now(),
     };
   }
