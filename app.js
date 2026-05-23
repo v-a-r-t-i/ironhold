@@ -1,4 +1,4 @@
-// app.js — Boot, event binding, game loop
+// app.js — Boot, event binding, game loop v1.1.0
 
 (async function boot() {
 
@@ -71,21 +71,18 @@
     btn.addEventListener('click', () => {
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Future: switch views
+      UI.switchView(btn.dataset.view);
     });
   });
 
   // ── START GAME ───────────────────────────────────────────
   async function startGame(newName) {
     let saved = null;
-    if (Auth.isLoggedIn()) {
-      saved = await Sync.loadGame();
-    }
+    if (Auth.isLoggedIn()) saved = await Sync.loadGame();
     Game.init(saved);
     if (newName && !saved) {
       Game.getState().castleName = `${newName}'s Ironhold`;
     }
-
     authScreen.classList.remove('active');
     gameScreen.classList.add('active');
     UI.renderAll();
@@ -94,16 +91,8 @@
 
   // ── TICKS ─────────────────────────────────────────────────
   function beginTicks() {
-    // Resource tick: every 2 s
-    setInterval(() => {
-      Game.tick();
-      UI.renderResources();
-    }, 2000);
-
-    // Auto-save: every 30 s
-    setInterval(() => {
-      if (Auth.isLoggedIn()) Sync.saveGame();
-    }, 30000);
+    setInterval(() => { Game.tick(); UI.renderResources(); }, 2000);
+    setInterval(() => { if (Auth.isLoggedIn()) Sync.saveGame(); }, 30000);
   }
 
 })();

@@ -7,13 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script>const APP_VERSION = '1.0.0';</script>
+  <script>const APP_VERSION = '1.1.0';</script>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
-     AUTH SCREEN
-════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ AUTH ═══════════════════════════════ -->
 <div id="auth-screen" class="screen active">
   <div class="auth-bg-effects">
     <div class="auth-torch left"></div>
@@ -45,9 +43,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     GAME SCREEN
-════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ GAME ═══════════════════════════════ -->
 <div id="game-screen" class="screen">
 
   <!-- TOP BAR -->
@@ -65,29 +61,38 @@
     </div>
   </div>
 
-  <!-- MAIN AREA -->
+  <!-- MAIN AREA — views swap here -->
   <div id="main-area">
 
-    <!-- LEFT SIDEBAR: Dwellers -->
-    <div id="sidebar-left">
-      <div class="sidebar-title">Dwellers <span id="dweller-count">0/10</span></div>
-      <div id="dweller-list"></div>
-      <div class="sidebar-version">v<span id="ver-display"></span></div>
-    </div>
-
-    <!-- CASTLE VIEW -->
-    <div id="castle-view">
-      <div id="castle-wall"></div>
-    </div>
-
-    <!-- RIGHT SIDEBAR: Info -->
-    <div id="sidebar-right">
-      <div id="info-panel">
-        <div class="info-placeholder">
-          <div class="info-icon">🏰</div>
-          <p>Click a room or dweller to inspect</p>
+    <!-- ── CASTLE VIEW ── -->
+    <div id="view-castle" class="game-view active">
+      <div id="sidebar-left">
+        <div class="sidebar-title">Dwellers <span id="dweller-count">0/10</span></div>
+        <div class="sidebar-hint">Drag to a room ↓</div>
+        <div id="dweller-list"></div>
+        <div class="sidebar-version">v<span id="ver-display"></span></div>
+      </div>
+      <div id="castle-view">
+        <div id="castle-wall"></div>
+      </div>
+      <div id="sidebar-right">
+        <div id="info-panel">
+          <div class="info-placeholder">
+            <div class="info-icon">🏰</div>
+            <p>Click a room or dweller to inspect</p>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- ── BATTLE VIEW ── -->
+    <div id="view-battle" class="game-view">
+      <div id="battle-content"></div>
+    </div>
+
+    <!-- ── RANKS VIEW ── -->
+    <div id="view-ranks" class="game-view">
+      <div id="ranks-content"></div>
     </div>
 
   </div>
@@ -109,7 +114,6 @@
   </div>
 </div>
 
-<!-- SCRIPTS -->
 <script src="data.js"></script>
 <script src="game.js"></script>
 <script src="battle.js"></script>

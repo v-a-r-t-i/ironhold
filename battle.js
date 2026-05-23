@@ -1,58 +1,75 @@
-// battle.js — Battle pre-calculation engine
+// battle.js — Battle pre-calculation engine v1.1.0
 
 const Battle = (() => {
 
-  function buildFighter(dwellerId) {
+  function buildFighterFromDweller(dwellerId) {
     const dw    = Game.getDweller(dwellerId);
     const stats = Game.getDwellerStats(dwellerId);
     const role  = Game.getDwellerRole(dwellerId);
     return {
-      id:     dwellerId,
-      name:   dw.name,
-      emoji:  dw.emoji,
+      id:      dwellerId,
+      name:    dw.name,
+      emoji:   dw.emoji,
+      role:    role.role,
+      maxHp:   stats.hp,
+      hp:      stats.hp,
+      atk:     stats.atk,
+      def:     stats.def,
+      crit:    stats.crit,
+      dodge:   stats.dodge,
+      spd:     stats.spd,
+      alive:   true,
+    };
+  }
+
+  function buildFighterFromEnemy(enemy) {
+    const role = WEAPON_ROLES[enemy.weapon] || WEAPON_ROLES.none;
+    return {
+      id:     enemy.id,
+      name:   enemy.name,
+      emoji:  enemy.emoji,
       role:   role.role,
-      maxHp:  stats.hp,
-      hp:     stats.hp,
-      atk:    stats.atk,
-      def:    stats.def,
-      mdef:   stats.mdef,
-      crit:   stats.crit,
-      dodge:  stats.dodge,
-      spd:    stats.spd,
+      maxHp:  enemy.stats.hp,
+      hp:     enemy.stats.hp,
+      atk:    enemy.stats.atk,
+      def:    enemy.stats.def,
+      crit:   enemy.stats.crit,
+      dodge:  enemy.stats.dodge,
+      spd:    enemy.stats.spd,
       alive:  true,
     };
   }
 
   function resolveHit(attacker, target) {
-    // Dodge
     if (Math.random() * 100 < target.dodge) {
       return { type: 'dodge', damage: 0, attacker: attacker.id, target: target.id };
     }
-    // Crit
-    const crit   = Math.random() * 100 < attacker.crit;
-    let damage   = Math.max(1, attacker.atk - target.def * 0.5);
+    const crit  = Math.random() * 100 < attacker.crit;
+    let damage  = Math.max(1, attacker.atk - target.def * 0.5);
     if (crit) damage *= 2;
     damage = Math.max(1, Math.round(damage));
     target.hp = Math.max(0, target.hp - damage);
     if (target.hp === 0) target.alive = false;
     return {
-      type:   crit ? 'crit' : 'hit',
-      damage, attacker: attacker.id, target: target.id,
+      type:    crit ? 'crit' : 'hit',
+      damage,
+      attacker: attacker.id,
+      target:   target.id,
     };
   }
 
   function pickTarget(attacker, enemies) {
     if (attacker.role === 'Archer' || attacker.role === 'Assassin') {
-      // Lowest HP first
       return enemies.reduce((a, b) => a.hp < b.hp ? a : b);
     }
-    return enemies[0]; // Front enemy
+    return enemies[0];
   }
 
-  // ─── MAIN CALCULATE ──────────────────────────────────────
-  function calculate(attackerIds, defenderIds) {
-    const attackers = attackerIds.map(buildFighter);
-    const defenders = defenderIds.map(buildFighter);
+  // attackerIds = array of dweller IDs
+  // enemyList   = array of enemy objects (from rollEnemyParty)
+  function calculate(attackerIds, enemyList) {
+    const attackers = attackerIds.map(buildFighterFromDweller);
+    const defenders = enemyList.map(buildFighterFromEnemy);
     const log = [];
     const MAX_ROUNDS = 30;
 
@@ -81,7 +98,6 @@ const Battle = (() => {
           targetHp:     target.hp,
           targetMaxHp:  target.maxHp,
         });
-
         if (!attackers.some(c => c.alive) || !defenders.some(c => c.alive)) break;
       }
     }
@@ -89,9 +105,9 @@ const Battle = (() => {
     const won = defenders.every(c => !c.alive);
     return {
       log,
-      winner:    won ? 'attacker' : 'defender',
-      rounds:    log.length ? log[log.length - 1].round : 0,
-      loot:      won ? rollLoot() : null,
+      winner:   won ? 'attacker' : 'defender',
+      rounds:   log.length ? log[log.length - 1].round : 0,
+      loot:     won ? rollLoot() : null,
       survivors: {
         attackers: attackers.filter(c => c.alive).map(c => c.id),
         defenders: defenders.filter(c => c.alive).map(c => c.id),
@@ -100,7 +116,7 @@ const Battle = (() => {
   }
 
   function rollLoot() {
-    const roll = Math.random() * 100;
+    const roll   = Math.random() * 100;
     const rarity = roll < 60 ? 'common' : roll < 88 ? 'rare' : roll < 98 ? 'epic' : 'legendary';
     return {
       rarity,
