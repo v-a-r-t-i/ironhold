@@ -179,11 +179,11 @@ body {
 .nav-btn.active, .nav-btn:hover { color: var(--gold); border-top-color: var(--gold); background: rgba(232,196,74,0.04); }
 
 /* ─── VIEWS ───────────────────────────────────────────────── */
-.game-view { display: none; flex: 1; min-height: 0; overflow: hidden; }
-.game-view.active { display: flex; }
+.game-view { display: none; width: 100%; min-height: 0; overflow: hidden; }
+.game-view.active { display: flex; flex: 1; width: 100%; }
 
-#view-castle { flex: 1; }
-#view-battle, #view-ranks { flex-direction: column; overflow-y: auto; }
+#view-castle { width: 100%; }
+#view-battle, #view-ranks { flex-direction: column; overflow-y: auto; align-items: flex-start; }
 
 /* ─── DESKTOP: 3-col castle layout ───────────────────────── */
 @media (min-width: 700px) {
@@ -460,3 +460,68 @@ select { background: var(--bg-dark); border: 1px solid var(--stone); border-radi
 .txt-gold   { color: var(--gold); }
 .txt-dim    { color: var(--text-dim); }
 .txt-bright { color: var(--text-bright); }
+
+/* ─── ANIMATED ROOM DWELLERS ─────────────────────────────── */
+
+/* Container that stretches across the bottom of the room cell */
+.room-walkers {
+  position: absolute;
+  bottom: 7px;
+  left: 8px;
+  right: 8px;
+  height: 32px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Each walking figure */
+.walker {
+  position: absolute;
+  bottom: 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  animation: walk-right var(--walk-dur, 4s) linear infinite;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+  will-change: transform;
+}
+
+/* Bounce while walking */
+@keyframes walk-right {
+  0%   { transform: translateX(0)    scaleX(1)  translateY(0); }
+  10%  { transform: translateX(10%)  scaleX(1)  translateY(-2px); }
+  20%  { transform: translateX(20%)  scaleX(1)  translateY(0); }
+  30%  { transform: translateX(30%)  scaleX(1)  translateY(-2px); }
+  40%  { transform: translateX(40%)  scaleX(1)  translateY(0); }
+  49%  { transform: translateX(49%)  scaleX(1)  translateY(0); }
+  50%  { transform: translateX(50%)  scaleX(-1) translateY(0); }
+  60%  { transform: translateX(40%)  scaleX(-1) translateY(-2px); }
+  70%  { transform: translateX(30%)  scaleX(-1) translateY(0); }
+  80%  { transform: translateX(20%)  scaleX(-1) translateY(-2px); }
+  90%  { transform: translateX(10%)  scaleX(-1) translateY(0); }
+  100% { transform: translateX(0)    scaleX(1)  translateY(0); }
+}
+
+/* Stagger offsets so they don't walk in lockstep */
+.walker:nth-child(1) { --walk-dur: 3.8s; animation-delay: 0s;    left: 5%; }
+.walker:nth-child(2) { --walk-dur: 4.4s; animation-delay: -1.6s; left: 20%; }
+.walker:nth-child(3) { --walk-dur: 3.2s; animation-delay: -0.9s; left: 35%; }
+.walker:nth-child(4) { --walk-dur: 4.8s; animation-delay: -2.2s; left: 50%; }
+
+/* Small shadow underfoot */
+.walker::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px; height: 4px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+/* Torch flicker in room — enhanced */
+.room-cell:not(.locked) .room-torch {
+  animation: flicker 2.5s ease-in-out infinite alternate;
+  text-shadow: 0 0 8px rgba(255,120,30,0.9), 0 0 16px rgba(255,80,0,0.5);
+}

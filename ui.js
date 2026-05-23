@@ -42,10 +42,11 @@ const UI = (() => {
         cell.className = 'room-cell' + (locked ? ' locked' : '');
         cell.dataset.roomId = roomId;
 
-        const dotsHtml = dwIds.map(id => {
-          const dw = Game.getDweller(id);
-          return `<div class="rdot" title="${dw?.name||''}">${dw?.emoji||'👤'}</div>`;
-        }).join('');
+        const walkersHtml = (!locked && dwIds.length)
+          ? `<div class="room-walkers">${dwIds.map(id => {
+              const dw = Game.getDweller(id);
+              return `<span class="walker" title="${dw?.name||''}">${dw?.emoji||'🧍'}</span>`;
+            }).join('')}</div>` : '';
 
         const rateHtml = (def.resource && !locked)
           ? `<div class="room-output">+${def.baseRate * level}/min ${def.resource}</div>` : '';
@@ -56,7 +57,7 @@ const UI = (() => {
           <div class="room-name">${def.name}</div>
           <div class="room-meta">${locked ? 'LOCKED' : 'Level ' + level}</div>
           ${rateHtml}
-          <div class="room-dwellers">${dotsHtml}</div>
+          ${walkersHtml}
           <div class="room-floor-line"></div>
         `;
 
