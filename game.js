@@ -13,7 +13,7 @@ const Game = (() => {
     });
     roomLevels['workshop'] = 0;
     return {
-      castleName:'Ironhold', throneLevel:1, wins:0, mapProgress:1,
+      saveVersion:3, castleName:'Ironhold', throneLevel:1, wins:0, mapProgress:1,
       resources:{ gold:200, food:150, iron:40, shards:{ common:5, rare:0, epic:0, legendary:0 } },
       dwellers: JSON.parse(JSON.stringify(STARTING_DWELLERS)),
       inventory: JSON.parse(JSON.stringify(STARTING_ITEMS)),
@@ -24,17 +24,33 @@ const Game = (() => {
 
   function init(saved) {
     _state = saved || defaultState();
-    // Migrate old saves that lack new fields
+    // If save is from an old version, reset to default (avoids corrupt state)
+    if (!_state.saveVersion || _state.saveVersion < 3) {
+      console.log('Old save format detected — resetting to fresh state');
+      _state = defaultState();
+    }
+    // Migrate missing fields safely
     if (!_state.roomStorage)   _state.roomStorage   = {};
     if (!_state.roomUpgrading) _state.roomUpgrading = {};
     ROOM_DEFS.forEach(r => {
       if (_state.roomStorage[r.id]   === undefined) _state.roomStorage[r.id]   = 0;
       if (_state.roomUpgrading[r.id] === undefined) _state.roomUpgrading[r.id] = null;
+      if (!_state.roomLevels[r.id] && r.id !== 'workshop') _state.roomLevels[r.id] = r.unlockAt === 1 ? 1 : 0;
     });
-    // Ensure dwellers have hp / maxHp fields (migrate old saves)
+    // Ensure resources are valid numbers
+    if (!_state.resources || typeof _state.resources.gold !== 'number') {
+      _state.resources = defaultState().resources;
+    }
+    // Ensure dwellers exist
+    if (!_state.dwellers || !_state.dwellers.length) {
+      _state.dwellers = JSON.parse(JSON.stringify(STARTING_DWELLERS));
+    }
+    // Ensure dwellers have hp / maxHp fields
     _state.dwellers.forEach(d => {
       if (!d.maxHp) d.maxHp = d.stats.hp;
       if (d.hp === undefined) d.hp = d.maxHp;
+      if (!d.level) d.level = 1;
+      if (d.xp === undefined) d.xp = 0;
     });
     _state.lastTick = Date.now();
   }

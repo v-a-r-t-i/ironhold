@@ -108,8 +108,8 @@ body {
 .auth-error { min-height:18px; margin-top:6px; font-size:.85rem; color:#ff7070; text-align:center; font-style:italic; }
 
 /* ─── GAME CHROME ─────────────────────────────────────────── */
-#game-screen { flex-direction:column; position:relative; }
-#map-screen  { flex-direction:column; }
+#game-screen { flex-direction:column; position:relative; overflow:hidden; }
+#map-screen  { flex-direction:column; overflow:hidden; }
 
 #top-bar {
   display:flex; align-items:center; gap:8px;
@@ -134,51 +134,65 @@ body {
 
 @media (max-width:699px) { #btn-dwellers { display:flex !important; } .res-hide-sm { display:none !important; } }
 
-/* ─── CASTLE HORIZONTAL SCROLL ────────────────────────────── */
+/* ─── CASTLE VIEW ─────────────────────────────────────────── */
 #castle-view {
   flex:1; min-height:0;
-  overflow-x:auto; overflow-y:hidden;
-  display:flex; align-items:stretch;
-  padding:12px;
-  background:var(--bg-void);
-  /* snap floors horizontally */
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
+  overflow-x:auto; overflow-y:auto;
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:16px 12px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, #0d0d22 0%, transparent 70%),
+    var(--bg-void);
 }
 #castle-wall {
+  /* On desktop: fills available space up to a nice max */
+  width: 100%;
+  max-width: 900px;
+  min-width: 340px;
   display:flex; flex-direction:row; align-items:stretch;
-  min-width:max-content;
-  border:2px solid var(--stone-mid); border-radius:3px;
+  border:2px solid var(--stone-mid); border-radius:4px;
   overflow:hidden; background:var(--bg-deep);
-  box-shadow:0 0 40px rgba(0,0,0,.8);
+  box-shadow:0 0 60px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.02) inset;
+  min-height: 400px;
 }
 
-/* Each floor is now a COLUMN (vertical slice of the castle cross-section) */
+/* Each floor is a vertical column */
 .castle-floor {
   display:flex; flex-direction:column;
-  border-right:2px solid var(--stone); flex-shrink:0;
-  scroll-snap-align:start;
-  width:160px;  /* base width; throne-room floor is wider */
+  flex:1;  /* all floors share width equally by default */
+  border-right:2px solid var(--stone);
+  min-width: 0;
 }
 .castle-floor:last-child { border-right:none; }
-.castle-floor.floor-3 { width:260px; }  /* Throne Room — wide single cell */
-.castle-floor.floor-2 { width:180px; }
-.castle-floor.floor-1 { width:160px; }
-.castle-floor.floor-0 { width:170px; }
+/* Floor-specific proportions */
+.castle-floor.floor-3 { flex:2.2; }   /* Throne Room — widest */
+.castle-floor.floor-2 { flex:1.8; }
+.castle-floor.floor-1 { flex:1.5; }   /* 3 rooms share this */
+.castle-floor.floor-0 { flex:1.6; }
 
-/* Crenellation on the top of the first (leftmost) floor */
-#castle-wall > .castle-floor:first-child::before {
-  content:''; display:block; height:8px;
-  background:repeating-linear-gradient(90deg,var(--stone-mid) 0,var(--stone-mid) 14px,transparent 14px,transparent 22px);
+/* Crenellations along the top */
+#castle-wall::before {
+  display:none; /* handled per-floor below */
+}
+.castle-floor::before {
+  content:''; display:block; height:7px; flex-shrink:0;
+  background:repeating-linear-gradient(90deg,var(--stone-mid) 0,var(--stone-mid) 12px,transparent 12px,transparent 20px);
 }
 
 /* ─── ROOM CELL ───────────────────────────────────────────── */
 .room-cell {
-  flex:1; min-height:110px;
+  flex:1; min-height:100px;
   background:var(--bg-room); border-bottom:2px solid var(--stone);
   cursor:pointer; transition:background var(--t);
   position:relative; overflow:hidden;
-  display:flex; flex-direction:column; padding:9px 10px 28px;
+  display:flex; flex-direction:column; padding:10px 10px 26px;
+}
+/* On wide screens give rooms more breathing room */
+@media (min-width:700px) {
+  .room-cell { min-height:130px; padding:12px 14px 30px; }
+  .room-icon { font-size:1.35rem !important; }
+  .room-name { font-size:.76rem !important; }
+  .room-meta,.room-output { font-size:.72rem !important; }
 }
 .room-cell:last-child { border-bottom:none; }
 .room-cell:hover, .room-cell:active { background:var(--bg-hover); }
@@ -505,7 +519,8 @@ select{background:var(--bg-dark);border:1px solid var(--stone);border-radius:3px
   overflow-y: hidden;
   display: flex;
   align-items: center;
-  padding: 0 10px;
+  justify-content: center;
+  padding: 0 16px;
   gap: 6px;
   scrollbar-width: none;
 }

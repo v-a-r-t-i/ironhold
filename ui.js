@@ -81,7 +81,7 @@ const UI = (() => {
           <div class="room-torch">${locked ? '🔒' : upg ? '🔨' : '🔥'}</div>
           <div class="room-icon">${def.icon}</div>
           <div class="room-name">${def.name}</div>
-          <div class="room-meta">${locked ? 'LOCKED' : upg ? `Upgrading… ${upg.remaining}s` : 'Level ' + level}</div>
+          <div class="room-meta">${locked ? 'LOCKED' : upg ? ('⬆ ' + upg.remaining + 's') : 'Level ' + level}</div>
           ${!locked && def.resource ? `<div class="room-output">+${def.baseRate * level}/min</div>` : ''}
           ${walkersHtml}
           ${collectBadge}
@@ -353,10 +353,12 @@ const UI = (() => {
       const rarCls = item ? ' filled r-' + item.rarity : '';
       return `<div class="equip-slot${rarCls}" onclick="UI.openEquipPicker('${dwellerId}','${slot.id}')">
         <div class="eslot-icon">${slot.icon}</div>
-        ${item ? `<div class="eslot-name" style="color:${RARITIES[item.rarity].color}">${item.name}</div>` : `<div class="eslot-lbl">${slot.label}</div>`}
+        ${item ? ('<div class="eslot-name" style="color:' + RARITIES[item.rarity].color + '">' + item.name + '</div>') : ('<div class="eslot-lbl">' + slot.label + '</div>')}
       </div>`;
     }).join('');
-    const xpBar = tp ? `<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:4px"><span>XP Progress</span><span>${tp.xp}/${tp.needed} → Lv${(dw.level||1)+1}</span></div><div class="rds-xp-bar" style="height:6px"><div class="rds-xp-fill" style="width:${Math.round(tp.pct*100)}%"></div></div></div>` : `<div style="margin-top:8px;font-size:.75rem;color:var(--gold)">✦ Max Level</div>`;
+    const xpBar = tp
+      ? '<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:4px"><span>XP Progress</span><span>' + tp.xp + '/' + tp.needed + ' → Lv' + ((dw.level||1)+1) + '</span></div><div class="rds-xp-bar" style="height:6px"><div class="rds-xp-fill" style="width:' + Math.round(tp.pct*100) + '%"></div></div></div>'
+      : '<div style="margin-top:8px;font-size:.75rem;color:var(--gold)">✦ Max Level</div>';
     openModal(`
       <div class="dw-header">
         <div class="dw-avatar-lg">${dw.emoji}</div>
