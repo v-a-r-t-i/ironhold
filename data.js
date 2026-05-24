@@ -133,10 +133,10 @@ const STARTING_ITEMS = [
 // ─── MAP / ROADMAP STAGES ──────────────────────────────────
 // Each stage: difficulty scales enemy stats. Cleared in order.
 const MAP_STAGES = [
-  { id: 1,  name: 'Bandit Camp',       region: 'Greenwood',   boss: '🏕️', diff: 1.0,  enemyCount: 1 },
-  { id: 2,  name: 'Wolf Den',          region: 'Greenwood',   boss: '🐺', diff: 1.2,  enemyCount: 2 },
-  { id: 3,  name: 'Goblin Warren',     region: 'Greenwood',   boss: '👺', diff: 1.4,  enemyCount: 2 },
-  { id: 4,  name: 'Crossroads Keep',   region: 'Greenwood',   boss: '🏰', diff: 1.7,  enemyCount: 3 },
+  { id: 1,  name: 'Bandit Camp',       region: 'Greenwood',   boss: '🏕️', diff: 0.6,  enemyCount: 1 },
+  { id: 2,  name: 'Wolf Den',          region: 'Greenwood',   boss: '🐺', diff: 0.8,  enemyCount: 2 },
+  { id: 3,  name: 'Goblin Warren',     region: 'Greenwood',   boss: '👺', diff: 1.0,  enemyCount: 2 },
+  { id: 4,  name: 'Crossroads Keep',   region: 'Greenwood',   boss: '🏰', diff: 1.3,  enemyCount: 3 },
   { id: 5,  name: 'Haunted Mill',      region: 'Mistmoor',    boss: '👻', diff: 2.0,  enemyCount: 2 },
   { id: 6,  name: 'Bog Witch Hut',     region: 'Mistmoor',    boss: '🧙', diff: 2.4,  enemyCount: 3 },
   { id: 7,  name: 'Skeleton Crypt',    region: 'Mistmoor',    boss: '💀', diff: 2.8,  enemyCount: 3 },
@@ -151,4 +151,46 @@ const REGION_COLORS = {
   'Greenwood': '#3a7a3a',
   'Mistmoor':  '#5a4a7a',
   'Frostpeak': '#3a6a8a',
+};
+
+
+// ─── LOOT TABLES ───────────────────────────────────────────
+// Base items. When dropped, stats scale by the rarity multiplier.
+// weaponType on weapons determines the fighter role when equipped.
+const LOOT_TEMPLATES = {
+  weapon: [
+    { base: 'Sword',      weaponType: 'sword',   stats: { atk: 9, hp: 6 } },
+    { base: 'Greatsword', weaponType: 'sword',   stats: { atk: 12, def: 3 } },
+    { base: 'Longbow',    weaponType: 'bow',     stats: { atk: 8, crit: 6 } },
+    { base: 'Crossbow',   weaponType: 'bow',     stats: { atk: 10, spd: 2 } },
+    { base: 'Staff',      weaponType: 'staff',   stats: { atk: 7, mdef: 5 } },
+    { base: 'Wand',       weaponType: 'staff',   stats: { atk: 6, mdef: 7 } },
+    { base: 'Daggers',    weaponType: 'daggers', stats: { atk: 7, crit: 9, spd: 3 } },
+    { base: 'Kris',       weaponType: 'daggers', stats: { atk: 6, crit: 12 } },
+  ],
+  armor: [
+    { base: 'Chainmail',   stats: { def: 8, hp: 22 } },
+    { base: 'Plate Armor', stats: { def: 12, hp: 14 } },
+    { base: 'Robe',        stats: { mdef: 10, hp: 16 } },
+    { base: 'Leathers',    stats: { def: 5, dodge: 6, hp: 12 } },
+  ],
+  ring: [
+    { base: 'Ring of Vigor',  stats: { hp: 20 } },
+    { base: 'Ring of Fury',   stats: { atk: 5, crit: 4 } },
+    { base: 'Ring of Haste',  stats: { spd: 4, dodge: 3 } },
+    { base: 'Ring of Wards',  stats: { def: 4, mdef: 4 } },
+  ],
+  artifact1: [
+    { base: 'Lucky Charm',   stats: { crit: 6, dodge: 4 } },
+    { base: 'War Totem',     stats: { atk: 6 } },
+    { base: 'Iron Sigil',    stats: { def: 6, hp: 10 } },
+    { base: 'Swift Feather', stats: { spd: 5 } },
+  ],
+};
+// Adjective prefixes by rarity for flavour
+const RARITY_PREFIX = {
+  common:    ['Worn', 'Plain', 'Chipped', 'Rusty'],
+  rare:      ['Fine', 'Sturdy', 'Polished', 'Keen'],
+  epic:      ['Heroic', 'Runed', 'Gleaming', 'Vicious'],
+  legendary: ['Ancient', 'Dragonforged', 'Godtouched', 'Eternal'],
 };

@@ -67,7 +67,7 @@ const Battle = (() => {
 
   // attackerIds = array of dweller IDs
   // enemyList   = array of enemy objects (from rollEnemyParty)
-  function calculate(attackerIds, enemyList) {
+  function calculate(attackerIds, enemyList, stageId = 1) {
     const attackers = attackerIds.map(buildFighterFromDweller);
     const defenders = enemyList.map(buildFighterFromEnemy);
     const log = [];
@@ -107,7 +107,7 @@ const Battle = (() => {
       log,
       winner:   won ? 'attacker' : 'defender',
       rounds:   log.length ? log[log.length - 1].round : 0,
-      loot:     won ? rollLoot() : null,
+      loot:     won ? rollLoot(stageId) : null,
       survivors: {
         attackers: attackers.filter(c => c.alive).map(c => c.id),
         defenders: defenders.filter(c => c.alive).map(c => c.id),
@@ -115,15 +115,63 @@ const Battle = (() => {
     };
   }
 
-  function rollLoot() {
-    const roll   = Math.random() * 100;
-    const rarity = roll < 60 ? 'common' : roll < 88 ? 'rare' : roll < 98 ? 'epic' : 'legendary';
+  // Roll a rarity. earlyBonus shifts odds toward better drops in early stages
+  // so beginners get flooded with gear (mirrors Hustle Castle's onboarding).
+  function rollRarity(luck = 0) {
+    const roll = Math.random() * 100 - luck;
+    if (roll < 55) return 'common';
+    if (roll < 85) return 'rare';
+    if (roll < 97) return 'epic';
+    return 'legendary';
+  }
+
+  let _itemCounter = Date.now();
+  function nextItemId() { return 'drop_' + (_itemCounter++); }
+
+  // Generate one random item, optionally forcing a slot
+  function generateItem(forceSlot, luck = 0) {
+    const slots = forceSlot ? [forceSlot] : ['weapon','armor','ring','artifact1'];
+    const slot  = slots[Math.floor(Math.random() * slots.length)];
+    const pool  = LOOT_TEMPLATES[slot];
+    const tmpl  = pool[Math.floor(Math.random() * pool.length)];
+    const rarity = rollRarity(luck);
+    const mult   = RARITIES[rarity].mult;
+    const prefixes = RARITY_PREFIX[rarity];
+    const prefix   = prefixes[Math.floor(Math.random() * prefixes.length)];
+
+    const stats = {};
+    Object.keys(tmpl.stats).forEach(k => { stats[k] = Math.round(tmpl.stats[k] * mult); });
+
     return {
-      rarity,
-      gold: Math.floor(Math.random() * 60) + 25,
-      food: Math.floor(Math.random() * 35) + 10,
+      id: nextItemId(),
+      name: `${prefix} ${tmpl.base}`,
+      slot: slot.startsWith('artifact') ? 'artifact1' : slot,
+      weaponType: tmpl.weaponType || null,
+      rarity, stats, ability: null,
     };
   }
 
-  return { calculate };
+  // Returns a loot bundle for winning a stage.
+  // stageId is used to give early stages extra item drops + luck.
+  function rollLoot(stageId = 1) {
+    const early = stageId <= 4;          // Greenwood = generous onboarding
+    const luck  = early ? 18 : 0;        // better rarity odds early
+    const itemCount = early ? (Math.random() < 0.5 ? 2 : 1) : (Math.random() < 0.35 ? 1 : 0);
+
+    const items = [];
+    for (let i = 0; i < itemCount; i++) {
+      // First few stages bias toward weapons so all dwellers can be armed
+      const forceSlot = (early && i === 0) ? 'weapon' : null;
+      items.push(generateItem(forceSlot, luck));
+    }
+
+    return {
+      gold:  Math.floor(Math.random() * 60) + 25 + stageId * 8,
+      food:  Math.floor(Math.random() * 35) + 10 + stageId * 4,
+      iron:  Math.floor(Math.random() * 15) + 5,
+      items,
+    };
+  }
+
+  return { calculate, rollLoot };
 })();

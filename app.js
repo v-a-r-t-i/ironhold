@@ -1,4 +1,4 @@
-// app.js — Boot, events, loop v1.4.0
+// app.js — Boot, events, loop v1.5.0
 
 (async function boot() {
   const authScreen = document.getElementById('auth-screen');
@@ -40,8 +40,9 @@
   // Guest
   document.getElementById('btn-guest').addEventListener('click', () => startGame());
 
-  // Logout
+  // Logout (saves first)
   document.getElementById('btn-logout').addEventListener('click', () => {
+    Sync.save();
     Auth.logout();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     authScreen.classList.add('active');
@@ -60,32 +61,39 @@
   document.getElementById('btn-close-drawer').addEventListener('click', UI.closeDrawer);
   document.getElementById('dweller-drawer-backdrop').addEventListener('click', UI.closeDrawer);
 
-  // Map back button
+  // FAB map button → opens map
+  document.getElementById('fab-map').addEventListener('click', () => UI.showScreen('map'));
+
+  // Exit button → back to castle
   document.getElementById('btn-map-back').addEventListener('click', () => UI.showScreen('castle'));
 
-  // Bottom nav (both bars)
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const nav = btn.dataset.nav;
-      if (nav === 'ranks') { UI.openRanks(); return; }
-      UI.showScreen(nav);
-    });
+  // Map sub-tabs
+  document.querySelectorAll('.map-tab').forEach(t => {
+    t.addEventListener('click', () => UI.switchMapTab(t.dataset.mtab));
   });
 
   // Start
   async function startGame(newName) {
-    let saved = null;
-    if (Auth.isLoggedIn()) saved = await Sync.loadGame();
+    let saved = await Sync.load();  // local + cloud
     Game.init(saved);
     if (newName && !saved) Game.getState().castleName = `${newName}'s Ironhold`;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('game-screen').classList.add('active');
     UI.renderAll();
+    Sync.save(); // ensure a save exists immediately
     beginTicks();
   }
 
   function beginTicks() {
-    setInterval(() => { Game.tick(); UI.renderResources(); }, 2000);
-    setInterval(() => { if (Auth.isLoggedIn()) Sync.saveGame(); }, 30000);
+    // Resource tick + local save every 3s
+    setInterval(() => { Game.tick(); UI.renderResources(); Sync.saveLocal(); }, 3000);
+    // Cloud backup every 30s
+    setInterval(() => { Sync.saveCloud(); }, 30000);
   }
+
+  // Save on tab close / background (critical for not losing progress)
+  window.addEventListener('beforeunload', () => { Sync.saveLocal(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') { Sync.saveLocal(); Sync.saveCloud(); }
+  });
 })();

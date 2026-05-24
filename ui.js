@@ -5,9 +5,31 @@ const UI = (() => {
   // ─── SCREEN NAV ──────────────────────────────────────────
   function showScreen(name) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    if (name === 'castle') document.getElementById('game-screen').classList.add('active');
-    if (name === 'map')    { document.getElementById('map-screen').classList.add('active'); renderRoadmap(); syncMapResources(); }
+    if (name === 'castle') {
+      document.getElementById('game-screen').classList.add('active');
+    }
+    if (name === 'map') {
+      document.getElementById('map-screen').classList.add('active');
+      switchMapTab('campaign');
+      syncMapResources();
+    }
     closeDrawer();
+    if (typeof Sync !== 'undefined') Sync.saveLocal();
+  }
+
+  function switchMapTab(tab) {
+    document.querySelectorAll('.map-tab').forEach(t => t.classList.toggle('active', t.dataset.mtab === tab));
+    const roadmap = document.getElementById('roadmap');
+    const ranks   = document.getElementById('ranks-panel');
+    if (tab === 'campaign') {
+      roadmap.classList.remove('hidden');
+      ranks.classList.add('hidden');
+      renderRoadmap();
+    } else {
+      roadmap.classList.add('hidden');
+      ranks.classList.remove('hidden');
+      renderRanksPanel();
+    }
   }
 
   function syncMapResources() {
@@ -255,7 +277,7 @@ const UI = (() => {
   function runStageBattle() {
     const partyIds = Game.getBattleParty();
     if (!partyIds.length) return;
-    const result = Battle.calculate(partyIds, _activeEnemies);
+    const result = Battle.calculate(partyIds, _activeEnemies, _activeStage ? _activeStage.id : 1);
     playBattleLog(result);
   }
 
@@ -275,20 +297,20 @@ const UI = (() => {
         addLine(log, `— ${won ? '🏆 VICTORY' : '💀 DEFEAT'} —`, won ? 'result win' : 'result loss');
         const s = Game.getState();
         if (won) {
-          if (result.loot) {
-            addLine(log, `💰 +${result.loot.gold} Gold · 🍖 +${result.loot.food} Food · 📦 ${result.loot.rarity} chest`, 'loot');
-            s.resources.gold += result.loot.gold;
-            s.resources.food += result.loot.food;
+          const loot = result.loot;
+          if (loot) {
+            s.resources.gold += loot.gold;
+            s.resources.food += loot.food;
+            s.resources.iron += (loot.iron || 0);
+            if (loot.items && loot.items.length) Game.addItems(loot.items);
           }
           s.wins = (s.wins || 0) + 1;
-          // Unlock next stage
           if (_activeStage && _activeStage.id === (s.mapProgress || 1)) {
             s.mapProgress = Math.min(_activeStage.id + 1, MAP_STAGES.length);
-            addLine(log, `🗺️ Next stage unlocked!`, 'loot');
           }
-          renderResources();
-          if (fightBtn) { fightBtn.textContent = '✓ Cleared — Continue'; fightBtn.disabled = false;
-            fightBtn.onclick = () => { closeModal(); renderRoadmap(); }; }
+          renderResources(); renderDwellerList();
+          if (typeof Sync !== 'undefined') Sync.save();
+          showChestReveal(loot);
         } else {
           const lossGold = Math.min(s.resources.gold, 15);
           s.resources.gold -= lossGold;
@@ -311,6 +333,41 @@ const UI = (() => {
     step();
   }
 
+  // ─── CHEST REVEAL ────────────────────────────────────────
+  function showChestReveal(loot) {
+    const nextUnlocked = _activeStage && _activeStage.id < MAP_STAGES.length;
+    const itemsHtml = (loot.items && loot.items.length)
+      ? loot.items.map(it => {
+          const r = RARITIES[it.rarity];
+          const statStr = Object.entries(it.stats).map(([k,v]) => `${STAT_DEFS[k]?.icon||k} +${v}`).join('  ');
+          return `<div class="loot-item r-${it.rarity}" style="border-color:${r.color}">
+            <div class="loot-item-icon">${it.slot==='weapon'?'⚔️':it.slot==='armor'?'🛡️':it.slot==='ring'?'💍':'🔮'}</div>
+            <div class="loot-item-info">
+              <div class="loot-item-name" style="color:${r.color}">${it.name}</div>
+              <div class="loot-item-rarity" style="color:${r.color}">${r.label}</div>
+              <div class="loot-item-stats">${statStr}</div>
+            </div>
+          </div>`;
+        }).join('')
+      : '<p style="color:var(--text-dim);font-style:italic;text-align:center;font-size:0.85rem">No gear this time — just resources.</p>';
+
+    openModal(`
+      <div class="chest-reveal">
+        <div class="chest-icon">🎁</div>
+        <div class="modal-title" style="text-align:center">Victory Spoils!</div>
+        <div class="loot-resources">
+          <span>💰 +${loot.gold}</span>
+          <span>🍖 +${loot.food}</span>
+          ${loot.iron ? `<span>⚙️ +${loot.iron}</span>` : ''}
+        </div>
+        <div class="modal-sect-title" style="margin-top:14px">Items Looted</div>
+        <div class="loot-items">${itemsHtml}</div>
+        ${nextUnlocked ? '<div class="loot-unlock">🗺️ Next stage unlocked!</div>' : ''}
+        <button class="btn-primary" style="width:100%;margin-top:16px" onclick="UI.closeModal();UI.renderRoadmap()">Continue</button>
+      </div>
+    `);
+  }
+
   function addLine(container, text, cls) {
     const div = document.createElement('div');
     div.className = 'log-line' + (cls ? ' ' + cls : '');
@@ -318,8 +375,51 @@ const UI = (() => {
     container.appendChild(div);
   }
 
-  // ─── RANKS MODAL ─────────────────────────────────────────
-  function openRanks() {
+  // ─── RANKS PANEL (inline in map screen) ──────────────────
+  function renderRanksPanel() {
+    const panel = document.getElementById('ranks-panel');
+    if (!panel) return;
+    const wins   = Game.getState().wins || 0;
+    const score  = (wins * 120) + (Game.getDwellers().length * 50) + ((Game.getState().mapProgress||1) * 80);
+    const user   = Auth.getUser();
+    const myName = user ? (user.email?.split('@')[0] || 'You') : 'You (Guest)';
+    const tier   = score > 4000 ? 'Champion' : score > 2000 ? 'Knight' : score > 800 ? 'Soldier' : 'Recruit';
+    const fakes = [
+      { name:'Thorvald the Grim', emoji:'🧔', wins:47, score:5820, tier:'Champion' },
+      { name:'Lady Seraphine',    emoji:'👸', wins:38, score:4690, tier:'Champion' },
+      { name:'Iron Duke Raven',   emoji:'🤺', wins:31, score:3870, tier:'Knight'  },
+      { name:'Morgath Stonehide', emoji:'👹', wins:27, score:3340, tier:'Knight'  },
+      { name:'Elara the Swift',   emoji:'🧝', wins:19, score:2420, tier:'Soldier' },
+      { name:'Dunwick the Bold',  emoji:'⚔️', wins:14, score:1760, tier:'Soldier' },
+    ];
+    const all = [...fakes, { name:myName, emoji:'🏰', wins, score, tier, you:true }].sort((a,b)=>b.score-a.score);
+    const myRank = all.findIndex(r => r.you) + 1;
+
+    panel.innerHTML = `
+      <div class="ranks-header">🏆 Hall of Lords</div>
+      <div class="ranks-sub">Global Leaderboard</div>
+      <div class="your-stats-box">
+        <div class="ys-item"><div class="ys-val">#${myRank}</div><div class="ys-lbl">Rank</div></div>
+        <div class="ys-item"><div class="ys-val">${wins}</div><div class="ys-lbl">Wins</div></div>
+        <div class="ys-item"><div class="ys-val">${Game.getDwellers().length}</div><div class="ys-lbl">Dwellers</div></div>
+        <div class="ys-item"><div class="ys-val">${score.toLocaleString()}</div><div class="ys-lbl">Score</div></div>
+      </div>
+      <div class="rank-tier-label">All Kingdoms</div>
+      ${all.map((row, idx) => {
+        const pos = idx+1;
+        const posCls = pos===1?'top1':pos===2?'top2':pos===3?'top3':'';
+        const posStr = pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':`#${pos}`;
+        return `<div class="rank-row ${row.you?'you':''}">
+          <div class="rank-pos ${posCls}">${posStr}</div>
+          <div class="rank-avatar-sm">${row.emoji}</div>
+          <div class="rank-info"><div class="rank-name">${row.name}${row.you?' (You)':''}</div>
+          <div class="rank-meta">${row.tier} · ${row.wins} wins</div></div>
+          <div class="rank-score">${row.score.toLocaleString()}</div>
+        </div>`;
+      }).join('')}`;
+  }
+
+  function _unused_openRanks() {
     const wins   = Game.getState().wins || 0;
     const score  = (wins * 120) + (Game.getDwellers().length * 50) + ((Game.getState().mapProgress||1) * 80);
     const user   = Auth.getUser();
@@ -412,10 +512,12 @@ const UI = (() => {
     if (!sel?.value) return;
     Game.assignDweller(sel.value, roomId);
     openRoomModal(roomId); renderDwellerList(); renderCastle();
+    if (typeof Sync !== 'undefined') Sync.save();
   }
   function doUnassign(dwellerId, roomId) {
     Game.unassignDweller(dwellerId);
     openRoomModal(roomId); renderDwellerList(); renderCastle();
+    if (typeof Sync !== 'undefined') Sync.save();
   }
 
   // ─── DWELLER MODAL ───────────────────────────────────────
@@ -467,8 +569,9 @@ const UI = (() => {
   function doEquip(dwellerId, itemId) {
     Game.equipItem(dwellerId, itemId);
     openDwellerModal(dwellerId); renderDwellerList(); renderCastle();
+    if (typeof Sync !== 'undefined') Sync.save();
   }
-  function doUnequip(dwellerId, slot) { Game.unequipItem(dwellerId, slot); openDwellerModal(dwellerId); }
+  function doUnequip(dwellerId, slot) { Game.unequipItem(dwellerId, slot); openDwellerModal(dwellerId); if (typeof Sync !== 'undefined') Sync.save(); }
 
   // ─── INVENTORY MODAL ─────────────────────────────────────
   function openInventory() {
@@ -486,6 +589,7 @@ const UI = (() => {
   // ─── FULL RENDER ─────────────────────────────────────────
   function renderAll() {
     renderCastle(); renderDwellerList(); renderResources();
+    const vd = document.getElementById('ver-display'); if (vd) vd.textContent = APP_VERSION;
   }
 
   function fmt(n) {
@@ -499,7 +603,7 @@ const UI = (() => {
     showScreen, openDrawer, closeDrawer, renderRoadmap,
     openModal, closeModal,
     openRoomModal, openDwellerModal, openEquipPicker, openInventory,
-    openStageModal, openRanks,
+    openStageModal, renderRanksPanel, switchMapTab, showChestReveal,
     doAssign, doUnassign, doEquip, doUnequip, fmt,
   };
 })();

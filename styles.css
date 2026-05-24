@@ -135,7 +135,7 @@ body {
 .auth-error { min-height: 18px; margin-top: 6px; font-size: 0.85rem; color: #ff7070; text-align: center; font-style: italic; }
 
 /* ─── GAME CHROME ─────────────────────────────────────────── */
-#game-screen { flex-direction: column; }
+#game-screen { flex-direction: column; position: relative; }
 
 #top-bar {
   display: flex; align-items: center; gap: 8px;
@@ -163,16 +163,7 @@ body {
 /* btn-dwellers: only visible on mobile */
 #btn-dwellers { display: none; }
 
-#bottom-bar {
-  display: flex; height: var(--bottombar-h);
-  border-top: 1px solid var(--stone); background: var(--bg-mid); flex-shrink: 0;
-}
-.nav-btn {
-  flex: 1; background: none; border: none; border-top: 2px solid transparent;
-  color: var(--text-dim); cursor: pointer;
-  font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 1px; transition: var(--t);
-}
-.nav-btn.active, .nav-btn:hover { color: var(--gold); border-top-color: var(--gold); background: rgba(232,196,74,0.04); }
+
 
 /* ─── SCREEN LAYOUT (castle + map are full screens) ──────── */
 #castle-view, #map-scroll { flex: 1; min-height: 0; }
@@ -657,3 +648,113 @@ select { background: var(--bg-dark); border: 1px solid var(--stone); border-radi
 
 /* Battle modal specifics */
 .battle-modal-arena { margin-bottom: 14px; }
+
+/* ─── FLOATING MAP BUTTON (FAB) ───────────────────────────── */
+#fab-map {
+  position: absolute;
+  left: 16px;
+  bottom: 20px;
+  width: 68px; height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #3a2e10 0%, #6a4a00 55%, #2a2008 100%);
+  border: 2px solid var(--gold-dim);
+  color: var(--gold-bright);
+  cursor: pointer;
+  z-index: 50;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 24px rgba(232,196,74,0.25);
+  transition: transform var(--t), box-shadow var(--t);
+  animation: fab-glow 2.6s ease-in-out infinite alternate;
+}
+@keyframes fab-glow {
+  from { box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 16px rgba(232,196,74,0.2); }
+  to   { box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 32px rgba(232,196,74,0.45); }
+}
+#fab-map:active { transform: scale(0.92); }
+#fab-map .fab-icon  { font-size: 1.6rem; line-height: 1; }
+#fab-map .fab-label { font-family: 'Cinzel', serif; font-size: 0.5rem; letter-spacing: 2px; }
+
+.version-tag {
+  position: absolute;
+  right: 12px; bottom: 10px;
+  font-size: 0.62rem; color: var(--text-ghost);
+  font-family: monospace; z-index: 40;
+}
+
+/* Exit button styling */
+.btn-exit {
+  font-family: 'Cinzel', serif !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 1px;
+  padding: 6px 12px !important;
+  color: var(--text-main) !important;
+}
+.btn-exit:hover { color: var(--gold) !important; border-color: var(--gold-dim) !important; }
+
+/* ─── MAP SUB-TABS ────────────────────────────────────────── */
+#map-tabs {
+  display: flex;
+  background: var(--bg-mid);
+  border-bottom: 1px solid var(--stone);
+  flex-shrink: 0;
+}
+.map-tab {
+  flex: 1; padding: 12px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-dim); cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: 0.74rem; letter-spacing: 1px; transition: var(--t);
+}
+.map-tab.active, .map-tab:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+#ranks-panel { max-width: 660px; margin: 0 auto; padding: 20px 16px; }
+
+/* ─── LOOT / CHEST REVEAL ─────────────────────────────────── */
+.chest-reveal { text-align: center; }
+.chest-icon {
+  font-size: 3rem;
+  animation: chest-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-bottom: 4px;
+}
+@keyframes chest-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.loot-resources {
+  display: flex; justify-content: center; gap: 16px;
+  margin-top: 8px;
+  font-size: 1rem; color: var(--gold);
+  font-family: 'Cinzel', serif;
+}
+.loot-items { display: flex; flex-direction: column; gap: 8px; }
+.loot-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 4px;
+  padding: 10px 12px;
+  text-align: left;
+  animation: loot-slide 0.4s ease backwards;
+}
+.loot-item:nth-child(1) { animation-delay: 0.1s; }
+.loot-item:nth-child(2) { animation-delay: 0.25s; }
+@keyframes loot-slide {
+  from { transform: translateX(-20px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+.loot-item-icon { font-size: 1.8rem; flex-shrink: 0; }
+.loot-item-info { flex: 1; min-width: 0; }
+.loot-item-name   { font-size: 0.95rem; font-weight: 600; }
+.loot-item-rarity { font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 1px; text-transform: uppercase; }
+.loot-item-stats  { font-size: 0.78rem; color: var(--text-dim); margin-top: 2px; }
+.loot-unlock {
+  margin-top: 14px; padding: 8px;
+  background: rgba(232,196,74,0.08);
+  border: 1px solid var(--gold-dim);
+  border-radius: 4px;
+  color: var(--gold);
+  font-family: 'Cinzel', serif; font-size: 0.8rem;
+}

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <script>const APP_VERSION = '1.4.0';</script>
+  <script>const APP_VERSION = '1.5.0';</script>
 </head>
 <body>
 
@@ -39,7 +39,7 @@
       <button id="btn-register" class="btn-primary">Found Your Castle</button>
     </div>
     <div id="auth-error" class="auth-error"></div>
-    <button id="btn-guest" class="btn-secondary">⚔ Play as Guest (no save)</button>
+    <button id="btn-guest" class="btn-secondary">⚔ Play as Guest (saved on this device)</button>
   </div>
 </div>
 
@@ -64,11 +64,13 @@
     <div id="castle-wall"></div>
   </div>
 
-  <div id="bottom-bar">
-    <button class="nav-btn active" data-nav="castle">🏰 Castle</button>
-    <button class="nav-btn" data-nav="map">🗺️ Map</button>
-    <button class="nav-btn" data-nav="ranks">🏆 Ranks</button>
-  </div>
+  <!-- Floating circular MAP button (bottom-left) -->
+  <button id="fab-map" title="World Map">
+    <span class="fab-icon">🗺️</span>
+    <span class="fab-label">MAP</span>
+  </button>
+
+  <div class="version-tag">v<span id="ver-display"></span></div>
 </div>
 
 <!-- ═══════════════════════════════ MAP ═══════════════════════════════ -->
@@ -80,18 +82,19 @@
       <div class="resource"><span class="res-icon">🍖</span><span class="res-val map-food">0</span></div>
     </div>
     <div class="top-actions">
-      <button class="btn-icon" id="btn-map-back" title="Back to castle">✕</button>
+      <button class="btn-icon btn-exit" id="btn-map-back" title="Back to castle">✕ Exit</button>
     </div>
+  </div>
+
+  <!-- Map sub-tabs -->
+  <div id="map-tabs">
+    <button class="map-tab active" data-mtab="campaign">⚔️ Campaign</button>
+    <button class="map-tab" data-mtab="ranks">🏆 Ranks</button>
   </div>
 
   <div id="map-scroll">
     <div id="roadmap"></div>
-  </div>
-
-  <div id="bottom-bar">
-    <button class="nav-btn" data-nav="castle">🏰 Castle</button>
-    <button class="nav-btn active" data-nav="map">🗺️ Map</button>
-    <button class="nav-btn" data-nav="ranks">🏆 Ranks</button>
+    <div id="ranks-panel" class="hidden"></div>
   </div>
 </div>
 

@@ -127,6 +127,24 @@ const Game = (() => {
     return true;
   }
 
+  // ─── INVENTORY MUTATION ──────────────────────────────────
+  function addItems(items) {
+    if (!items || !items.length) return;
+    items.forEach(it => _state.inventory.push(it));
+  }
+  function dismantleItem(itemId) {
+    const idx = _state.inventory.findIndex(i => i.id === itemId);
+    if (idx === -1) return false;
+    const item = _state.inventory[idx];
+    // Don't dismantle equipped items
+    const equipped = _state.dwellers.some(d => Object.values(d.equipment).includes(itemId));
+    if (equipped) return false;
+    const shardsGained = RARITIES[item.rarity].shards;
+    _state.resources.shards[item.rarity] = (_state.resources.shards[item.rarity] || 0) + shardsGained;
+    _state.inventory.splice(idx, 1);
+    return { rarity: item.rarity, shards: shardsGained };
+  }
+
   // ─── GETTERS ─────────────────────────────────────────────
   function getState()           { return _state; }
   function getDwellers()        { return _state.dwellers; }
@@ -142,7 +160,7 @@ const Game = (() => {
     getDweller, getDwellers, getDwellerRole, getDwellerStats,
     getInventory, getResources, getCastleName,
     assignDweller, unassignDweller,
-    equipItem, unequipItem, getEquippedItem,
+    equipItem, unequipItem, getEquippedItem, addItems, dismantleItem,
     getRoomLevel, getRoomDwellers, getBattleParty,
   };
 })();
