@@ -68,11 +68,16 @@ const UI = (() => {
               return `<span class="walker${injured?' walker-injured':''}" title="${dw?.name||''}">${dw?.emoji||'🧍'}</span>`;
             }).join('')}</div>` : '';
 
+        // Boost badge for production rooms with workers
+        const workerBoost = (def.resource && !locked && dwIds.length)
+          ? `<div class="room-boost">×${(1 + dwIds.length * 0.4).toFixed(1)}</div>` : '';
+
         // Upgrade bar
         const upgHtml = upg
           ? `<div class="room-upgrade-bar"><div class="room-upgrade-fill" style="width:${Math.round(upg.pct*100)}%"></div></div>` : '';
 
         cell.innerHTML = `
+          ${workerBoost}
           <div class="room-torch">${locked ? '🔒' : upg ? '🔨' : '🔥'}</div>
           <div class="room-icon">${def.icon}</div>
           <div class="room-name">${def.name}</div>
@@ -323,7 +328,7 @@ const UI = (() => {
 
   function doUnassign(dwellerId, roomId) {
     Game.unassignDweller(dwellerId);
-    openRoomModal(roomId); renderDwellerList(); renderCastle();
+    openRoomModal(roomId); renderDwellerList(); renderTray(); renderCastle();
     if (typeof Sync !== 'undefined') Sync.save();
   }
 
@@ -607,13 +612,13 @@ const UI = (() => {
 
   // ─── FULL RENDER ──────────────────────────────────────────
   function renderAll() {
-    renderCastle(); renderDwellerList(); renderResources();
+    renderCastle(); renderDwellerList(); renderTray(); renderResources();
     const vd=document.getElementById('ver-display'); if(vd)vd.textContent=APP_VERSION;
   }
   function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n||0).toString();}
 
   return {
-    renderAll, renderCastle, renderDwellerList, renderResources,
+    renderAll, renderCastle, renderDwellerList, renderTray, renderResources,
     showScreen, switchMapTab, syncMapResources, renderRoadmap, renderRanksPanel,
     openModal, closeModal, openDrawer, closeDrawer,
     openRoomModal, openDwellerModal, openEquipPicker, openInventory, openItemDetail,

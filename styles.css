@@ -494,3 +494,125 @@ select{background:var(--bg-dark);border:1px solid var(--stone);border-radius:3px
 /* ─── UTIL ───────────────────────────────────────────────── */
 .hidden{display:none !important}
 .txt-gold{color:var(--gold)}.txt-dim{color:var(--text-dim)}.txt-bright{color:var(--text-bright)}
+
+/* ─── DWELLER TRAY (always-visible unassigned row) ───────── */
+#dweller-tray {
+  flex-shrink: 0;
+  height: 64px;
+  background: var(--bg-mid);
+  border-bottom: 1px solid var(--stone);
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 6px;
+  scrollbar-width: none;
+}
+#dweller-tray::-webkit-scrollbar { display: none; }
+#dweller-tray-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+/* Tray dweller chip */
+.tray-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-dark);
+  border: 1px solid var(--stone);
+  border-radius: 20px;
+  padding: 4px 10px 4px 5px;
+  cursor: grab;
+  touch-action: none;   /* critical for custom touch drag */
+  user-select: none;
+  transition: border-color var(--t), background var(--t);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tray-chip:hover { background: var(--bg-hover); border-color: var(--stone-lite); }
+.tray-chip.dragging-active { opacity: 0.35; }
+.tray-chip .tc-emoji { font-size: 1.3rem; }
+.tray-chip .tc-name  { font-size: 0.72rem; color: var(--text-main); }
+.tray-chip .tc-role  { font-size: 0.62rem; color: var(--text-dim); }
+
+.tray-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 2px;
+  color: var(--text-ghost);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Touch drag ghost — follows finger */
+#drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  background: var(--bg-mid);
+  border: 2px solid var(--gold-dim);
+  border-radius: 20px;
+  padding: 5px 12px 5px 7px;
+  font-size: 1.3rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.7), 0 0 20px rgba(232,196,74,0.3);
+  transform: translate(-50%, -50%) scale(1.15);
+  transition: none;
+  white-space: nowrap;
+}
+#drag-ghost.visible { display: flex; align-items: center; gap: 6px; }
+
+/* Room drop highlight during touch drag */
+.room-cell.touch-drop-target {
+  outline: 2px dashed var(--gold);
+  outline-offset: -3px;
+  background: var(--bg-hover) !important;
+}
+
+/* Production boost indicator */
+.room-boost {
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  font-size: 0.6rem;
+  color: #7edd8a;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+/* Walker dots inside rooms — enhanced */
+.room-walkers {
+  position: absolute;
+  bottom: 20px;
+  left: 4px;
+  right: 4px;
+  height: 30px;
+  pointer-events: none;
+  overflow: hidden;
+}
+.walker {
+  position: absolute;
+  bottom: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  animation: walk-bounce var(--walk-dur, 4s) ease-in-out infinite;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+  will-change: transform;
+}
+@keyframes walk-bounce {
+  0%   { transform: translateX(0)   scaleX(1);  }
+  20%  { transform: translateX(25%) scaleX(1)  translateY(-2px); }
+  45%  { transform: translateX(55%) scaleX(1); }
+  50%  { transform: translateX(55%) scaleX(-1); }
+  70%  { transform: translateX(30%) scaleX(-1) translateY(-2px); }
+  95%  { transform: translateX(2%)  scaleX(-1); }
+  100% { transform: translateX(0)   scaleX(1); }
+}
+.walker:nth-child(1) { --walk-dur: 3.6s; animation-delay: 0s;    left: 5%;  }
+.walker:nth-child(2) { --walk-dur: 4.2s; animation-delay: -1.8s; left: 18%; }
+.walker:nth-child(3) { --walk-dur: 3.0s; animation-delay: -0.9s; left: 32%; }
+.walker:nth-child(4) { --walk-dur: 4.6s; animation-delay: -2.4s; left: 45%; }

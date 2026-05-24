@@ -80,6 +80,8 @@
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('game-screen').classList.add('active');
     UI.renderAll();
+    UI.renderTray();
+    Drag.init();
     Sync.save(); // ensure a save exists immediately
     beginTicks();
   }
