@@ -135,7 +135,7 @@ const UI = (() => {
           dwIds.forEach(function(id) {
             var dw = Game.getDweller(id);
             var injCls = dw && dw.injured ? ' walker-injured' : '';
-            walkersHtml += '<span class="walker draggable-walker' + injCls + '" data-dw-id="' + id + '" title="' + (dw ? dw.name : '') + '">' + (dw ? dw.emoji : '🧍') + '</span>';
+            walkersHtml += '<span class="walker draggable-walker' + injCls + '" data-dw-id="' + id + '" draggable="false" title="' + (dw ? dw.name : '') + '">' + (dw ? dw.emoji : '🧍') + '</span>';
           });
           walkersHtml += '</div>';
         }
@@ -146,7 +146,7 @@ const UI = (() => {
           if (unassigned.length) {
             unassignedHtml = '<div class="room-unassigned">';
             unassigned.forEach(function(dw) {
-              unassignedHtml += '<span class="walker-unassigned draggable-walker" data-dw-id="' + dw.id + '" title="' + dw.name + ' (drag to assign)">' + dw.emoji + '</span>';
+              unassignedHtml += '<span class="walker-unassigned draggable-walker" data-dw-id="' + dw.id + '" draggable="false" title="' + dw.name + ' (drag to assign)">' + dw.emoji + '</span>';
             });
             unassignedHtml += '<div style="font-size:.55rem;color:var(--text-ghost);margin-top:2px">drag to assign</div></div>';
           }

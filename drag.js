@@ -1,77 +1,85 @@
-// drag.js — Pointer-event drag system v1.8.3
-// Uses Pointer Events API (works for touch + mouse, bypasses scroll-container issues).
-// Wired once at init() on document — no per-element listeners needed.
+// drag.js — Drag system v1.8.4
+// Pointer Events with native drag prevention.
 
 const Drag = (() => {
-  let _dragging = null;
-  let _ghost    = null;
+  let _state  = null;  // { dwellerId, sourceEl }
+  let _ghost  = null;
+  let _active = false;
 
   function init() {
     _ghost = document.getElementById('drag-ghost');
 
-    // Single pointerdown on document — capture phase so we get it before scroll
-    document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('pointermove', onPointerMove, { passive: false });
-    document.addEventListener('pointerup',   onPointerUp,   true);
-    document.addEventListener('pointercancel', cancel);
+    // Kill native drag on anything inside the castle wall
+    document.addEventListener('dragstart', function(e) {
+      if (e.target.closest('#castle-wall') || e.target.closest('.tray-chip')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // Pointer down in capture phase — fires before browser scroll/drag logic
+    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('pointermove', onMove, true);
+    document.addEventListener('pointerup',   onUp,   true);
+    document.addEventListener('pointercancel', function(e) {
+      // Only cancel if it's our captured pointer
+      if (_state && e.isPrimary) cancel();
+    }, true);
   }
 
-  function onPointerDown(e) {
-    // Only primary pointer (finger or left-click)
+  function onDown(e) {
     if (!e.isPrimary) return;
-
     var el = e.target.closest('.draggable-walker');
     if (!el) return;
-
     var id = el.getAttribute('data-dw-id');
     if (!id) return;
 
-    // Prevent scroll + text selection
     e.preventDefault();
     e.stopPropagation();
 
-    // Capture pointer so we keep getting events even if finger leaves element
-    try { el.setPointerCapture(e.pointerId); } catch(ex) {}
+    // Capture so pointermove follows finger even outside element
+    try { el.setPointerCapture(e.pointerId); } catch(x) {}
 
-    _dragging = { dwellerId: id, sourceEl: el, pointerId: e.pointerId };
+    _active = true;
+    _state  = { dwellerId: id, sourceEl: el };
     el.classList.add('dragging-active');
 
-    // Build ghost
-    var dw = Game.getDweller(id);
-    if (_ghost) {
-      _ghost.innerHTML =
-        '<span style="font-size:1.6rem">' + (dw ? dw.emoji : '?') + '</span>' +
-        '<span style="font-size:.8rem;margin-left:4px;color:var(--text-main)">' + (dw ? dw.name : '') + '</span>';
-      _ghost.classList.add('visible');
-      moveGhost(e.clientX, e.clientY);
-    }
-
-    // Highlight valid drop rooms
-    document.querySelectorAll('.room-cell:not(.locked)').forEach(function(cell) {
-      var roomId = cell.dataset.roomId;
-      var def    = ROOM_DEFS.find(function(r) { return r.id === roomId; });
-      if (!def) return;
-      // All rooms with slots are valid (throne room = unassign)
-      if (def.maxDwellers > 0 || roomId === 'throne_room') {
-        cell.classList.add('touch-drop-target');
-      }
-    });
+    showGhost(id, e.clientX, e.clientY);
+    highlightDropTargets(id);
   }
 
-  function onPointerMove(e) {
-    if (!_dragging || !e.isPrimary) return;
+  function onMove(e) {
+    if (!_active || !e.isPrimary) return;
+    e.preventDefault();
+    e.stopPropagation();
     moveGhost(e.clientX, e.clientY);
-    // Don't preventDefault here — let scroll still work when NOT dragging a walker
   }
 
-  function onPointerUp(e) {
-    if (!_dragging || !e.isPrimary) return;
+  function onUp(e) {
+    if (!_active || !e.isPrimary) return;
+    e.preventDefault();
+    e.stopPropagation();
 
-    var target = document.elementFromPoint(e.clientX, e.clientY);
-    var cell   = target && target.closest('.room-cell');
-    if (cell) drop(cell.dataset.roomId);
+    // Find drop target — temporarily hide ghost so elementFromPoint works
+    if (_ghost) _ghost.style.visibility = 'hidden';
+    var el   = document.elementFromPoint(e.clientX, e.clientY);
+    if (_ghost) _ghost.style.visibility = '';
 
+    var cell = el && el.closest('.room-cell');
+    if (cell && cell.dataset.roomId) {
+      drop(cell.dataset.roomId);
+    }
     cancel();
+  }
+
+  function showGhost(id, x, y) {
+    if (!_ghost) return;
+    var dw = Game.getDweller(id);
+    _ghost.innerHTML =
+      '<span style="font-size:2rem;line-height:1">' + (dw ? dw.emoji : '🧍') + '</span>' +
+      '<span style="font-size:.8rem;color:var(--text-bright);margin-left:6px">' + (dw ? dw.name : '') + '</span>';
+    _ghost.classList.add('visible');
+    moveGhost(x, y);
   }
 
   function moveGhost(x, y) {
@@ -80,14 +88,28 @@ const Drag = (() => {
     _ghost.style.top  = y + 'px';
   }
 
+  function highlightDropTargets(dwellerId) {
+    document.querySelectorAll('.room-cell:not(.locked)').forEach(function(cell) {
+      var rid = cell.dataset.roomId;
+      if (!rid) return;
+      if (rid === 'throne_room') {
+        cell.classList.add('touch-drop-target');
+        return;
+      }
+      var def = ROOM_DEFS.find(function(r) { return r.id === rid; });
+      if (def && def.maxDwellers > 0 && Game.getRoomDwellers(rid).length < def.maxDwellers) {
+        cell.classList.add('touch-drop-target');
+      }
+    });
+  }
+
   function drop(roomId) {
-    if (!_dragging || !roomId) return;
-    var id  = _dragging.dwellerId;
+    if (!_state) return;
+    var id  = _state.dwellerId;
     var def = ROOM_DEFS.find(function(r) { return r.id === roomId; });
     if (!def) return;
 
     if (roomId === 'throne_room') {
-      // Throne room = unassign (send back)
       Game.unassignDweller(id);
     } else {
       if (!def.maxDwellers) return;
@@ -101,36 +123,23 @@ const Drag = (() => {
   }
 
   function cancel() {
-    if (_dragging && _dragging.sourceEl) {
-      _dragging.sourceEl.classList.remove('dragging-active');
-    }
+    _active = false;
+    if (_state && _state.sourceEl) _state.sourceEl.classList.remove('dragging-active');
     if (_ghost) _ghost.classList.remove('visible');
     document.querySelectorAll('.touch-drop-target').forEach(function(el) {
       el.classList.remove('touch-drop-target');
     });
-    _dragging = null;
+    _state = null;
   }
 
-  // Public: manual startDrag (kept for compatibility)
-  function startDrag(dwellerId, sourceEl, clientX, clientY) {
-    // Synthesise a start using the same logic
-    _dragging = { dwellerId: dwellerId, sourceEl: sourceEl, pointerId: null };
-    sourceEl.classList.add('dragging-active');
-    var dw = Game.getDweller(dwellerId);
-    if (_ghost) {
-      _ghost.innerHTML =
-        '<span style="font-size:1.6rem">' + (dw ? dw.emoji : '?') + '</span>' +
-        '<span style="font-size:.8rem;margin-left:4px;color:var(--text-main)">' + (dw ? dw.name : '') + '</span>';
-      _ghost.classList.add('visible');
-      moveGhost(clientX, clientY);
-    }
-    document.querySelectorAll('.room-cell:not(.locked)').forEach(function(cell) {
-      var roomId = cell.dataset.roomId;
-      var def    = ROOM_DEFS.find(function(r) { return r.id === roomId; });
-      if (def && (def.maxDwellers > 0 || roomId === 'throne_room')) {
-        cell.classList.add('touch-drop-target');
-      }
-    });
+  // Kept for any external callers
+  function startDrag(id, el, x, y) {
+    if (_active) return;
+    _active = true;
+    _state  = { dwellerId: id, sourceEl: el };
+    el.classList.add('dragging-active');
+    showGhost(id, x, y);
+    highlightDropTargets(id);
   }
 
   return { init, startDrag, cancel };

@@ -766,6 +766,9 @@ select{background:var(--bg-dark);border:1px solid var(--stone);border-radius:3px
   cursor: grab !important;
   touch-action: none !important;
   display: inline-block;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .draggable-walker:hover {
   transform: scale(1.4) !important;
