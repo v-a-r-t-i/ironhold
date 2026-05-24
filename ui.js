@@ -220,28 +220,7 @@ const UI = (() => {
       wall.appendChild(col);
     });
 
-    // ── Event delegation on wall for all walker interactions ──
-    // Touch drag
-    wall.addEventListener('touchstart', function(e) {
-      var el = e.target.closest('.draggable-walker');
-      if (!el) return;
-      var id = el.getAttribute('data-dw-id');
-      if (!id) return;
-      if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.touches[0].clientX, e.touches[0].clientY);
-      e.preventDefault();
-      e.stopPropagation();
-    }, { passive: false });
-
-    // Mouse drag (desktop)
-    wall.addEventListener('mousedown', function(e) {
-      var el = e.target.closest('.draggable-walker');
-      if (!el) return;
-      var id = el.getAttribute('data-dw-id');
-      if (!id) return;
-      if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.clientX, e.clientY);
-      e.preventDefault();
-      e.stopPropagation();
-    });
+    // Drag handled by Drag.init() pointer-event delegation
   }
 
   function doCollect(roomId) {

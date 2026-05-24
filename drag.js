@@ -1,38 +1,77 @@
-// drag.js — Unified touch + mouse drag system for Ironhold v1.7.0
-// Works on both mobile (touch) and desktop (mouse/HTML5 drag).
+// drag.js — Pointer-event drag system v1.8.3
+// Uses Pointer Events API (works for touch + mouse, bypasses scroll-container issues).
+// Wired once at init() on document — no per-element listeners needed.
 
 const Drag = (() => {
-  let _dragging = null;   // { dwellerId, sourceEl }
+  let _dragging = null;
   let _ghost    = null;
 
   function init() {
     _ghost = document.getElementById('drag-ghost');
-    // Listen on document so we always catch touchend/mouseup
-    document.addEventListener('touchmove',  onTouchMove,  { passive: false });
-    document.addEventListener('touchend',   onTouchEnd,   { passive: false });
-    document.addEventListener('touchcancel',cancelDrag);
-    document.addEventListener('mousemove',  onMouseMove);
-    document.addEventListener('mouseup',    onMouseUp);
+
+    // Single pointerdown on document — capture phase so we get it before scroll
+    document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('pointermove', onPointerMove, { passive: false });
+    document.addEventListener('pointerup',   onPointerUp,   true);
+    document.addEventListener('pointercancel', cancel);
   }
 
-  // ── Start drag (called from tray chip + room walker tap) ──
-  function startDrag(dwellerId, sourceEl, clientX, clientY) {
-    _dragging = { dwellerId, sourceEl };
-    sourceEl.classList.add('dragging-active');
+  function onPointerDown(e) {
+    // Only primary pointer (finger or left-click)
+    if (!e.isPrimary) return;
 
-    const dw = Game.getDweller(dwellerId);
-    _ghost.innerHTML = `<span>${dw?.emoji || '🧍'}</span><span style="font-size:.75rem;color:var(--text-main)">${dw?.name || ''}</span>`;
-    _ghost.classList.add('visible');
-    moveGhost(clientX, clientY);
+    var el = e.target.closest('.draggable-walker');
+    if (!el) return;
 
-    // Highlight valid drop targets
-    document.querySelectorAll('.room-cell:not(.locked)').forEach(cell => {
-      const roomId = cell.dataset.roomId;
-      const def    = ROOM_DEFS.find(r => r.id === roomId);
-      if (def && def.maxDwellers > 0 && Game.getRoomDwellers(roomId).length < def.maxDwellers) {
+    var id = el.getAttribute('data-dw-id');
+    if (!id) return;
+
+    // Prevent scroll + text selection
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Capture pointer so we keep getting events even if finger leaves element
+    try { el.setPointerCapture(e.pointerId); } catch(ex) {}
+
+    _dragging = { dwellerId: id, sourceEl: el, pointerId: e.pointerId };
+    el.classList.add('dragging-active');
+
+    // Build ghost
+    var dw = Game.getDweller(id);
+    if (_ghost) {
+      _ghost.innerHTML =
+        '<span style="font-size:1.6rem">' + (dw ? dw.emoji : '?') + '</span>' +
+        '<span style="font-size:.8rem;margin-left:4px;color:var(--text-main)">' + (dw ? dw.name : '') + '</span>';
+      _ghost.classList.add('visible');
+      moveGhost(e.clientX, e.clientY);
+    }
+
+    // Highlight valid drop rooms
+    document.querySelectorAll('.room-cell:not(.locked)').forEach(function(cell) {
+      var roomId = cell.dataset.roomId;
+      var def    = ROOM_DEFS.find(function(r) { return r.id === roomId; });
+      if (!def) return;
+      // All rooms with slots are valid (throne room = unassign)
+      if (def.maxDwellers > 0 || roomId === 'throne_room') {
         cell.classList.add('touch-drop-target');
       }
     });
+  }
+
+  function onPointerMove(e) {
+    if (!_dragging || !e.isPrimary) return;
+    moveGhost(e.clientX, e.clientY);
+    // Don't preventDefault here — let scroll still work when NOT dragging a walker
+  }
+
+  function onPointerUp(e) {
+    if (!_dragging || !e.isPrimary) return;
+
+    var target = document.elementFromPoint(e.clientX, e.clientY);
+    var cell   = target && target.closest('.room-cell');
+    if (cell) drop(cell.dataset.roomId);
+
+    cancel();
   }
 
   function moveGhost(x, y) {
@@ -41,64 +80,58 @@ const Drag = (() => {
     _ghost.style.top  = y + 'px';
   }
 
-  // ── Touch handlers ──
-  function onTouchMove(e) {
-    if (!_dragging) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    moveGhost(t.clientX, t.clientY);
-  }
-
-  function onTouchEnd(e) {
-    if (!_dragging) return;
-    const t = e.changedTouches[0];
-    const target = document.elementFromPoint(t.clientX, t.clientY);
-    const cell   = target?.closest('.room-cell');
-    if (cell) {
-      drop(cell.dataset.roomId);
-    }
-    cancelDrag();
-  }
-
-  // ── Mouse handlers (desktop) ──
-  function onMouseMove(e) {
-    if (!_dragging) return;
-    moveGhost(e.clientX, e.clientY);
-  }
-
-  function onMouseUp(e) {
-    if (!_dragging) return;
-    const target = document.elementFromPoint(e.clientX, e.clientY);
-    const cell   = target?.closest('.room-cell');
-    if (cell) drop(cell.dataset.roomId);
-    cancelDrag();
-  }
-
-  // ── Drop logic ──
   function drop(roomId) {
     if (!_dragging || !roomId) return;
-    const def = ROOM_DEFS.find(r => r.id === roomId);
+    var id  = _dragging.dwellerId;
+    var def = ROOM_DEFS.find(function(r) { return r.id === roomId; });
     if (!def) return;
-    // Drop on throne room = unassign
+
     if (roomId === 'throne_room') {
-      Game.unassignDweller(_dragging.dwellerId);
+      // Throne room = unassign (send back)
+      Game.unassignDweller(id);
     } else {
-      if (def.maxDwellers === 0) return;
+      if (!def.maxDwellers) return;
       if (Game.getRoomDwellers(roomId).length >= def.maxDwellers) return;
-      Game.assignDweller(_dragging.dwellerId, roomId);
+      Game.assignDweller(id, roomId);
     }
+
     UI.renderCastle();
     UI.renderDwellerList();
     if (typeof Sync !== 'undefined') Sync.save();
   }
 
-  function cancelDrag() {
-    if (_dragging?.sourceEl) _dragging.sourceEl.classList.remove('dragging-active');
+  function cancel() {
+    if (_dragging && _dragging.sourceEl) {
+      _dragging.sourceEl.classList.remove('dragging-active');
+    }
     if (_ghost) _ghost.classList.remove('visible');
-    document.querySelectorAll('.touch-drop-target').forEach(el => el.classList.remove('touch-drop-target'));
+    document.querySelectorAll('.touch-drop-target').forEach(function(el) {
+      el.classList.remove('touch-drop-target');
+    });
     _dragging = null;
   }
 
-  // ── Expose startDrag for chips to call ──
-  return { init, startDrag, cancelDrag };
+  // Public: manual startDrag (kept for compatibility)
+  function startDrag(dwellerId, sourceEl, clientX, clientY) {
+    // Synthesise a start using the same logic
+    _dragging = { dwellerId: dwellerId, sourceEl: sourceEl, pointerId: null };
+    sourceEl.classList.add('dragging-active');
+    var dw = Game.getDweller(dwellerId);
+    if (_ghost) {
+      _ghost.innerHTML =
+        '<span style="font-size:1.6rem">' + (dw ? dw.emoji : '?') + '</span>' +
+        '<span style="font-size:.8rem;margin-left:4px;color:var(--text-main)">' + (dw ? dw.name : '') + '</span>';
+      _ghost.classList.add('visible');
+      moveGhost(clientX, clientY);
+    }
+    document.querySelectorAll('.room-cell:not(.locked)').forEach(function(cell) {
+      var roomId = cell.dataset.roomId;
+      var def    = ROOM_DEFS.find(function(r) { return r.id === roomId; });
+      if (def && (def.maxDwellers > 0 || roomId === 'throne_room')) {
+        cell.classList.add('touch-drop-target');
+      }
+    });
+  }
+
+  return { init, startDrag, cancel };
 })();
