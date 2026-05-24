@@ -175,11 +175,11 @@ const UI = (() => {
               Drag.tryPlace(roomId);
               return;
             }
-            // Walker click → select dweller
+            // Walker click → open stats modal
             var walkerEl = e.target.closest('.draggable-walker');
             var wid = walkerEl && walkerEl.getAttribute('data-dw-id');
             if (wid) {
-              if (typeof Drag !== 'undefined') Drag.selectDweller(wid);
+              openDwellerModal(wid);
               return;
             }
             var badge = e.target.closest('[data-collect]');
@@ -429,12 +429,18 @@ const UI = (() => {
       ? '<div style="margin-top:10px"><div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:3px"><span>XP</span><span>' + tp.xp + '/' + tp.needed + '</span></div><div class="rds-xp-bar" style="height:5px"><div class="rds-xp-fill" style="width:' + Math.round(tp.pct * 100) + '%"></div></div></div>'
       : '<div style="margin-top:8px;font-size:.75rem;color:var(--gold)">Max Level</div>';
 
+    var assignedRoom = dw.assignedRoom;
+    var roomName = assignedRoom ? (ROOM_DEFS.find(function(r){return r.id===assignedRoom;})||{name:assignedRoom}).name : 'Throne Room (unassigned)';
     openModal(
       '<div class="dw-header"><div class="dw-avatar-lg">' + dw.emoji + '</div>' +
       '<div class="dw-header-info"><h3>' + dw.name + (dw.injured ? ' 🩹' : '') + '</h3>' +
       '<div class="dw-stars">' + stars + ' Lv ' + (dw.level || 1) + '</div>' +
       '<div class="role-badge ' + roleCls + '">' + role.icon + ' ' + role.role + '</div>' +
       xpBar + '</div></div>' +
+      '<div style="display:flex;gap:8px;margin-bottom:14px">' +
+      '<button class="btn-room-action" style="flex:1;font-size:.72rem" onclick="UI.startMove(\'' + dwellerId + '\')">'+
+      '🚶 Move — currently in ' + roomName + '</button>' +
+      '</div>' +
       '<div class="modal-sect"><div class="modal-sect-title">Stats</div><div class="stats-grid">' + statsHtml + '</div></div>' +
       '<div class="modal-sect"><div class="modal-sect-title">Equipment</div><div class="equip-grid">' + slotsHtml + '</div></div>'
     );
@@ -775,6 +781,12 @@ const UI = (() => {
   }
 
   // ─── MODAL ───────────────────────────────────────────────
+  // ─── MOVE DWELLER ─────────────────────────────────────────
+  function startMove(dwellerId) {
+    closeModal();
+    if (typeof Drag !== 'undefined') Drag.selectDweller(dwellerId);
+  }
+
   function openModal(html) {
     document.getElementById('modal-content').innerHTML = html;
     document.getElementById('modal-overlay').classList.remove('hidden');
@@ -802,7 +814,7 @@ const UI = (() => {
     openModal, closeModal, openDrawer, closeDrawer,
     openRoomModal, openDwellerModal, openEquipPicker, openInventory, openItemDetail,
     openStageModal, showChestReveal,
-    doUnassign, doCollect, doEquip, doUnequip, doUpgrade,
+    doUnassign, doCollect, doEquip, doUnequip, doUpgrade, startMove,
     _dismantle, fmt,
   };
 })();
