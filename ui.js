@@ -128,8 +128,11 @@ const UI = (() => {
           walkersHtml = '<div class="room-walkers">';
           dwIds.forEach(function(id) {
             var dw = Game.getDweller(id);
-            var injCls = dw && dw.injured ? ' walker-injured' : '';
-            walkersHtml += '<span class="walker draggable-walker' + injCls + '" data-dw-id="' + id + '" draggable="false" title="' + (dw ? dw.name : '') + '">' + (dw ? dw.emoji : '🧍') + '</span>';
+            if (!dw) return;
+            var role = Game.getDwellerRole(id);
+            var injCls = dw.injured ? ' walker-injured' : '';
+            var svg = (typeof Art !== 'undefined') ? Art.character(dw, role.role) : dw.emoji;
+            walkersHtml += '<span class="walker draggable-walker' + injCls + '" data-dw-id="' + id + '" draggable="false" title="' + dw.name + '">' + svg + '</span>';
           });
           walkersHtml += '</div>';
         }
@@ -140,7 +143,9 @@ const UI = (() => {
           if (unassigned.length) {
             unassignedHtml = '<div class="room-unassigned">';
             unassigned.forEach(function(dw) {
-              unassignedHtml += '<span class="walker-unassigned draggable-walker" data-dw-id="' + dw.id + '" draggable="false" title="' + dw.name + ' (drag to assign)">' + dw.emoji + '</span>';
+              var urole = Game.getDwellerRole(dw.id);
+              var usvg = (typeof Art !== 'undefined') ? Art.character(dw, urole.role) : dw.emoji;
+              unassignedHtml += '<span class="walker-unassigned draggable-walker" data-dw-id="' + dw.id + '" draggable="false" title="' + dw.name + '">' + usvg + '</span>';
             });
             unassignedHtml += '<div style="font-size:.55rem;color:var(--text-ghost);margin-top:2px">drag to assign</div></div>';
           }
@@ -155,8 +160,12 @@ const UI = (() => {
         var metaText = locked ? 'LOCKED' : (upg ? ('Upgrading ' + upg.remaining + 's') : 'Level ' + level);
         var outputHtml = (!locked && def.resource) ? '<div class="room-output">+' + (def.baseRate * level) + '/min</div>' : '';
         var torchIcon  = locked ? '🔒' : (upg ? '🔨' : '🔥');
+        var interiorHtml = (!locked && typeof Art !== 'undefined')
+          ? '<svg class="room-interior" viewBox="0 0 100 78" preserveAspectRatio="xMidYMax meet">' + Art.roomInterior(roomId) + '</svg>'
+          : '';
 
         cell.innerHTML =
+          interiorHtml +
           boostBadge +
           '<div class="room-torch">' + torchIcon + '</div>' +
           '<div class="room-icon">' + def.icon + '</div>' +

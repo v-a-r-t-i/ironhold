@@ -54,6 +54,10 @@ const Drag = (() => {
     var def = ROOM_DEFS.find(function(r) { return r.id === roomId; });
     if (!def) { clearSelection(); return false; }
 
+    // Capture source walker position for walk animation
+    var srcEl = document.querySelector('.draggable-walker[data-dw-id="' + id + '"]');
+    var srcRect = srcEl ? srcEl.getBoundingClientRect() : null;
+
     var placed = false;
     if (roomId === 'throne_room') {
       Game.unassignDweller(id);
@@ -65,11 +69,47 @@ const Drag = (() => {
 
     clearSelection();
     if (placed) {
+      // Find destination room center BEFORE re-render
+      var destCell = document.querySelector('.room-cell[data-room-id="' + roomId + '"]');
+      var destRect = destCell ? destCell.getBoundingClientRect() : null;
+
       UI.renderCastle();
       UI.renderDwellerList();
       if (typeof Sync !== 'undefined') Sync.save();
+
+      // Play walk animation
+      if (srcRect && destRect && typeof Art !== 'undefined') {
+        animateWalk(id, srcRect, destRect);
+      }
     }
     return placed;
+  }
+
+  function animateWalk(dwellerId, srcRect, destRect) {
+    var dw = Game.getDweller(dwellerId);
+    if (!dw) return;
+    var role = Game.getDwellerRole(dwellerId);
+    var ghost = document.createElement('div');
+    ghost.className = 'walking-character';
+    ghost.innerHTML = Art.character(dw, role.role);
+    ghost.style.left = srcRect.left + 'px';
+    ghost.style.top  = srcRect.top + 'px';
+    // flip direction
+    var goingRight = destRect.left > srcRect.left;
+    ghost.style.transform = goingRight ? 'scaleX(1)' : 'scaleX(-1)';
+    document.body.appendChild(ghost);
+    // Hide the static walker in the destination during the walk
+    var destWalker = document.querySelector('.draggable-walker[data-dw-id="' + dwellerId + '"]');
+    if (destWalker) destWalker.style.opacity = '0';
+    // Trigger transition
+    requestAnimationFrame(function() {
+      ghost.style.left = (destRect.left + destRect.width/2 - 17) + 'px';
+      ghost.style.top  = (destRect.top + destRect.height - 56) + 'px';
+    });
+    setTimeout(function() {
+      ghost.remove();
+      if (destWalker) destWalker.style.opacity = '';
+    }, 850);
   }
 
   function clearSelection() {
