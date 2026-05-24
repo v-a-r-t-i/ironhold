@@ -60,7 +60,7 @@ const ROOM_DEFS = [
   },
   {
     id:'hospital', name:'Hospital', floor:0, icon:'⚕️',
-    maxDwellers:1, resource:null, baseRate:0, unlockAt:1, healHpPerMin:15,
+    maxDwellers:1, resource:null, baseRate:0, unlockAt:1, healHpPerMin:400,
     description:'Injured fighters auto-heal over time. Higher level = faster healing.',
     upgradeCosts:[null,{gold:350,iron:0},{gold:850,iron:12},{gold:2000,iron:35},{gold:4500,iron:90}],
     upgradeDesc:['','+10 HP/min heal','×1.5 heal speed','Heals 2 fighters at once','×3 heal speed'],

@@ -270,6 +270,14 @@ const Game = (() => {
   // ─── GETTERS ────────────────────────────────────────────
   function getState()           { return _state; }
   function getInventory()       { return _state.inventory; }
+  // Only items NOT currently equipped by anyone
+  function getUnequippedInventory() {
+    var equipped = new Set();
+    _state.dwellers.forEach(function(d) {
+      Object.values(d.equipment).forEach(function(id) { if (id) equipped.add(id); });
+    });
+    return _state.inventory.filter(function(i) { return !equipped.has(i.id); });
+  }
   function getResources()       { return _state.resources; }
   function getCastleName()      { return _state.castleName; }
   function getRoomLevel(rid)    { return _state.roomLevels[rid]   || 0; }
@@ -280,7 +288,7 @@ const Game = (() => {
   return {
     init, tick, getState,
     getDweller, getDwellers, getDwellerRole, getDwellerStats,
-    getTrainingProgress, getInventory, getResources, getCastleName,
+    getTrainingProgress, getInventory, getUnequippedInventory, getResources, getCastleName,
     assignDweller, unassignDweller,
     equipItem, unequipItem, getEquippedItem, addItems, dismantleItem,
     collectRoom, canUpgrade, upgradeRoom, getUpgradeProgress,

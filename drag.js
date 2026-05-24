@@ -78,12 +78,17 @@ const Drag = (() => {
   function drop(roomId) {
     if (!_dragging || !roomId) return;
     const def = ROOM_DEFS.find(r => r.id === roomId);
-    if (!def || def.maxDwellers === 0) return;
-    if (Game.getRoomDwellers(roomId).length >= def.maxDwellers) return;
-    Game.assignDweller(_dragging.dwellerId, roomId);
+    if (!def) return;
+    // Drop on throne room = unassign
+    if (roomId === 'throne_room') {
+      Game.unassignDweller(_dragging.dwellerId);
+    } else {
+      if (def.maxDwellers === 0) return;
+      if (Game.getRoomDwellers(roomId).length >= def.maxDwellers) return;
+      Game.assignDweller(_dragging.dwellerId, roomId);
+    }
     UI.renderCastle();
     UI.renderDwellerList();
-    UI.renderTray();
     if (typeof Sync !== 'undefined') Sync.save();
   }
 

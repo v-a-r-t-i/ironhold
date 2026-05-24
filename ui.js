@@ -135,9 +135,21 @@ const UI = (() => {
           dwIds.forEach(function(id) {
             var dw = Game.getDweller(id);
             var injCls = dw && dw.injured ? ' walker-injured' : '';
-            walkersHtml += '<span class="walker' + injCls + '">' + (dw ? dw.emoji : '🧍') + '</span>';
+            walkersHtml += '<span class="walker draggable-walker' + injCls + '" data-dw-id="' + id + '" title="' + (dw ? dw.name : '') + '">' + (dw ? dw.emoji : '🧍') + '</span>';
           });
           walkersHtml += '</div>';
+        }
+        // Unassigned dwellers float in throne room
+        var unassignedHtml = '';
+        if (roomId === 'throne_room' && !locked) {
+          var unassigned = Game.getDwellers().filter(function(d) { return !d.assignedRoom; });
+          if (unassigned.length) {
+            unassignedHtml = '<div class="room-unassigned">';
+            unassigned.forEach(function(dw) {
+              unassignedHtml += '<span class="walker-unassigned draggable-walker" data-dw-id="' + dw.id + '" title="' + dw.name + ' (drag to assign)">' + dw.emoji + '</span>';
+            });
+            unassignedHtml += '<div style="font-size:.55rem;color:var(--text-ghost);margin-top:2px">drag to assign</div></div>';
+          }
         }
 
         // Upgrade bar
@@ -158,15 +170,39 @@ const UI = (() => {
           '<div class="room-meta">' + metaText + '</div>' +
           outputHtml +
           walkersHtml +
+          unassignedHtml +
           collectBadge +
           upgHtml;
 
         if (!locked) {
           cell.addEventListener('click', function(e) {
+            // Walker click → open dweller modal
+            var walkerEl = e.target.closest('.draggable-walker');
+            if (walkerEl && walkerEl.dataset.dwId) {
+              openDwellerModal(walkerEl.dataset.dwId);
+              return;
+            }
             var badge = e.target.closest('[data-collect]');
             if (badge) { doCollect(badge.dataset.collect); return; }
             openRoomModal(roomId);
           });
+          // After cell is in DOM, wire drag on walkers
+          setTimeout(function() {
+            cell.querySelectorAll('.draggable-walker').forEach(function(el) {
+              var id = el.dataset.dwId;
+              el.style.cursor = 'grab';
+              el.addEventListener('touchstart', function(e) {
+                if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.touches[0].clientX, e.touches[0].clientY);
+                e.preventDefault();
+                e.stopPropagation();
+              }, { passive: false });
+              el.addEventListener('mousedown', function(e) {
+                if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.clientX, e.clientY);
+                e.preventDefault();
+                e.stopPropagation();
+              });
+            });
+          }, 0);
           // Drop target for drag
           cell.addEventListener('dragover', function(e) {
             if (def.maxDwellers > 0 && Game.getRoomDwellers(roomId).length < def.maxDwellers) {
@@ -408,7 +444,14 @@ const UI = (() => {
   function openEquipPicker(dwellerId, slot) {
     var dw      = Game.getDweller(dwellerId);
     var current = Game.getEquippedItem(dwellerId, slot);
-    var pool    = Game.getInventory().filter(function(i) { return i.slot === slot; });
+    var currentId = current ? current.id : null;
+    // Show unequipped items + whatever is currently in this slot
+    var pool    = Game.getInventory().filter(function(i) {
+      if (i.slot !== slot) return false;
+      // Include if unequipped OR already in this slot
+      var equippedBy = Game.getDwellers().find(function(d) { return Object.values(d.equipment).indexOf(i.id) >= 0; });
+      return !equippedBy || i.id === currentId;
+    });
     var cards   = pool.map(function(item) {
       var r  = RARITIES[item.rarity];
       var eq = current && current.id === item.id;
@@ -437,7 +480,7 @@ const UI = (() => {
 
   // ─── INVENTORY ──────────────────────────────────────────
   function openInventory() {
-    var items = Game.getInventory();
+    var items = Game.getUnequippedInventory();
     var grid  = items.map(function(item) {
       var r = RARITIES[item.rarity];
       var icon = item.slot === 'weapon' ? 'sword' : item.slot === 'armor' ? 'shield' : item.slot === 'ring' ? 'ring' : 'gem';
@@ -635,7 +678,7 @@ const UI = (() => {
           var lossGold = Math.min(s.resources.gold, 15);
           s.resources.gold -= lossGold;
           addLine(log, 'Lost ' + lossGold + ' gold. Fighters are healing.', 'loss');
-          renderResources(); renderCastle(); renderTray();
+          renderResources(); renderCastle(); 
           save();
           if (fightBtn) {
             fightBtn.textContent = 'Try Again';
@@ -741,21 +784,20 @@ const UI = (() => {
   }
 
   // ─── HELPERS ─────────────────────────────────────────────
-  function refresh() { renderCastle(); renderDwellerList(); renderTray(); }
+  function refresh() { renderCastle(); renderDwellerList(); }
   function save()    { if (typeof Sync !== 'undefined') Sync.save(); }
   function fmt(n)    { if (n >= 1e6) return (n/1e6).toFixed(1)+'M'; if (n >= 1e3) return (n/1e3).toFixed(1)+'K'; return Math.floor(n || 0).toString(); }
 
   function renderAll() {
     renderCastle();
     renderDwellerList();
-    renderTray();
     renderResources();
     var vd = document.getElementById('ver-display');
     if (vd) vd.textContent = APP_VERSION;
   }
 
   return {
-    renderAll, renderCastle, renderDwellerList, renderTray, renderResources,
+    renderAll, renderCastle, renderDwellerList, renderResources,
     showScreen, switchMapTab, syncMapResources, renderRoadmap, renderRanksPanel,
     openModal, closeModal, openDrawer, closeDrawer,
     openRoomModal, openDwellerModal, openEquipPicker, openInventory, openItemDetail,
