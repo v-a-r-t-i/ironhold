@@ -178,31 +178,16 @@ const UI = (() => {
           cell.addEventListener('click', function(e) {
             // Walker click → open dweller modal
             var walkerEl = e.target.closest('.draggable-walker');
-            if (walkerEl && walkerEl.dataset.dwId) {
-              openDwellerModal(walkerEl.dataset.dwId);
+            var wid = walkerEl && walkerEl.getAttribute('data-dw-id');
+            if (wid) {
+              openDwellerModal(wid);
               return;
             }
             var badge = e.target.closest('[data-collect]');
             if (badge) { doCollect(badge.dataset.collect); return; }
             openRoomModal(roomId);
           });
-          // After cell is in DOM, wire drag on walkers
-          setTimeout(function() {
-            cell.querySelectorAll('.draggable-walker').forEach(function(el) {
-              var id = el.dataset.dwId;
-              el.style.cursor = 'grab';
-              el.addEventListener('touchstart', function(e) {
-                if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.touches[0].clientX, e.touches[0].clientY);
-                e.preventDefault();
-                e.stopPropagation();
-              }, { passive: false });
-              el.addEventListener('mousedown', function(e) {
-                if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.clientX, e.clientY);
-                e.preventDefault();
-                e.stopPropagation();
-              });
-            });
-          }, 0);
+
           // Drop target for drag
           cell.addEventListener('dragover', function(e) {
             if (def.maxDwellers > 0 && Game.getRoomDwellers(roomId).length < def.maxDwellers) {
@@ -218,7 +203,44 @@ const UI = (() => {
         }
         col.appendChild(cell);
       });
+      // Insert staircase divider between floors (not after the last)
+      if (floorNum > 0) {
+        var stair = document.createElement('div');
+        stair.className = 'staircase-col';
+        stair.innerHTML =
+          '<div class="stair-step"></div>' +
+          '<div class="stair-step"></div>' +
+          '<div class="stair-step"></div>' +
+          '<div class="stair-mid">&#9654;</div>' +
+          '<div class="stair-step"></div>' +
+          '<div class="stair-step"></div>' +
+          '<div class="stair-step"></div>';
+        wall.appendChild(stair);
+      }
       wall.appendChild(col);
+    });
+
+    // ── Event delegation on wall for all walker interactions ──
+    // Touch drag
+    wall.addEventListener('touchstart', function(e) {
+      var el = e.target.closest('.draggable-walker');
+      if (!el) return;
+      var id = el.getAttribute('data-dw-id');
+      if (!id) return;
+      if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.touches[0].clientX, e.touches[0].clientY);
+      e.preventDefault();
+      e.stopPropagation();
+    }, { passive: false });
+
+    // Mouse drag (desktop)
+    wall.addEventListener('mousedown', function(e) {
+      var el = e.target.closest('.draggable-walker');
+      if (!el) return;
+      var id = el.getAttribute('data-dw-id');
+      if (!id) return;
+      if (typeof Drag !== 'undefined') Drag.startDrag(id, el, e.clientX, e.clientY);
+      e.preventDefault();
+      e.stopPropagation();
     });
   }
 

@@ -709,3 +709,66 @@ select{background:var(--bg-dark);border:1px solid var(--stone);border-radius:3px
   outline-offset: -3px;
   background: rgba(232,196,74,0.06) !important;
 }
+
+/* ─── STAIRCASE COLUMN ────────────────────────────────────── */
+.staircase-col {
+  width: 18px;
+  flex-shrink: 0;
+  background: var(--bg-deep);
+  border-right: 1px solid var(--stone);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Remove the broken CSS pseudo staircase */
+.castle-floor::after { display: none !important; }
+
+.stair-step {
+  width: 12px;
+  height: 3px;
+  background: var(--stone-mid);
+  border-radius: 1px;
+  position: relative;
+}
+/* Offset steps to look like stairs */
+.stair-step:nth-child(1) { margin-left:  6px; }
+.stair-step:nth-child(2) { margin-left:  2px; }
+.stair-step:nth-child(3) { margin-left: -2px; }
+.stair-step:nth-child(5) { margin-left: -2px; }
+.stair-step:nth-child(6) { margin-left:  2px; }
+.stair-step:nth-child(7) { margin-left:  6px; }
+
+.stair-mid {
+  font-size: 0.5rem;
+  color: var(--stone-lite);
+  line-height: 1;
+  transform: rotate(90deg);
+}
+
+/* ─── OVERRIDE: pointer-events on walkers ─────────────────── */
+/* room-walkers previously had pointer-events:none — override */
+.room-walkers {
+  pointer-events: all !important;
+  z-index: 10 !important;
+}
+.room-unassigned {
+  pointer-events: all !important;
+  z-index: 10 !important;
+}
+.draggable-walker {
+  pointer-events: all !important;
+  cursor: grab !important;
+  touch-action: none !important;
+  display: inline-block;
+}
+.draggable-walker:hover {
+  transform: scale(1.4) !important;
+  filter: drop-shadow(0 0 8px rgba(232,196,74,0.8)) !important;
+  z-index: 20;
+  position: relative;
+}
