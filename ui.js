@@ -74,14 +74,8 @@ const UI = (() => {
     tray.querySelectorAll('.tray-chip').forEach(function(chip) {
       var id = chip.dataset.id;
       chip.addEventListener('click', function() { UI.openDwellerModal(id); });
-      chip.addEventListener('touchstart', function(e) {
-        if (typeof Drag !== 'undefined') Drag.startDrag(id, chip, e.touches[0].clientX, e.touches[0].clientY);
-        e.preventDefault();
-      }, { passive: false });
-      chip.addEventListener('mousedown', function(e) {
-        if (typeof Drag !== 'undefined') Drag.startDrag(id, chip, e.clientX, e.clientY);
-        e.preventDefault();
-      });
+      // tap chip = select dweller
+      chip.addEventListener('click', function(e) { e.stopPropagation(); if (typeof Drag !== 'undefined') Drag.selectDweller(id); });
     });
   }
 
@@ -176,11 +170,16 @@ const UI = (() => {
 
         if (!locked) {
           cell.addEventListener('click', function(e) {
-            // Walker click → open dweller modal
+            // If a dweller is selected → try to place them here
+            if (typeof Drag !== 'undefined' && Drag.isSelecting()) {
+              Drag.tryPlace(roomId);
+              return;
+            }
+            // Walker click → select dweller
             var walkerEl = e.target.closest('.draggable-walker');
             var wid = walkerEl && walkerEl.getAttribute('data-dw-id');
             if (wid) {
-              openDwellerModal(wid);
+              if (typeof Drag !== 'undefined') Drag.selectDweller(wid);
               return;
             }
             var badge = e.target.closest('[data-collect]');

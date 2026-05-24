@@ -61,6 +61,17 @@
   document.getElementById('btn-close-drawer').addEventListener('click', UI.closeDrawer);
   document.getElementById('dweller-drawer-backdrop').addEventListener('click', UI.closeDrawer);
 
+  // Escape or click background cancels dweller selection
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && typeof Drag !== 'undefined') Drag.clearSelection();
+  });
+  document.getElementById('castle-view').addEventListener('click', function(e) {
+    if (typeof Drag !== 'undefined' && Drag.isSelecting()) {
+      // Only cancel if clicked empty space (not a room cell)
+      if (!e.target.closest('.room-cell')) Drag.clearSelection();
+    }
+  });
+
   // FAB map button → opens map
   document.getElementById('fab-map').addEventListener('click', () => UI.showScreen('map'));
 

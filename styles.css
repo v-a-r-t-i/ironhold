@@ -776,3 +776,41 @@ select{background:var(--bg-dark);border:1px solid var(--stone);border-radius:3px
   z-index: 20;
   position: relative;
 }
+
+/* ─── SELECTION BANNER ────────────────────────────────────── */
+#select-banner {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 500;
+  background: linear-gradient(90deg, #1a1a10, #2a2a18, #1a1a10);
+  border-top: 1px solid var(--gold-dim);
+  padding: 10px 16px;
+  font-family: 'Cinzel', serif;
+  font-size: .78rem;
+  color: var(--text-main);
+  letter-spacing: 1px;
+  text-align: center;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.6);
+  animation: banner-in .2s ease;
+}
+@keyframes banner-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Selected walker glow */
+.walker-selected {
+  animation: none !important;
+  filter: drop-shadow(0 0 10px gold) brightness(1.4) !important;
+  transform: scale(1.5) !important;
+  z-index: 20;
+  position: relative;
+  cursor: pointer !important;
+}
+/* Drop target rooms pulse */
+.room-cell.touch-drop-target {
+  outline: 2px solid var(--gold) !important;
+  outline-offset: -3px;
+  background: rgba(232,196,74,.08) !important;
+  cursor: pointer !important;
+}
